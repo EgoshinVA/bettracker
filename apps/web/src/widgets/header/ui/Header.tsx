@@ -2,9 +2,6 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import { Search, Bell, HelpCircle, LogOut } from 'lucide-react'
-import { useGetUserPreferencesQuery } from '@/features/update-preferences'
-
-const MOCK_BALANCE = 12840.5
 
 interface HeaderProps {
   placeholder?: string
@@ -12,15 +9,9 @@ interface HeaderProps {
 
 export function Header({ placeholder = 'Search analytics...' }: HeaderProps) {
   const { data: session } = useSession()
-  const { data: prefs } = useGetUserPreferencesQuery()
 
   const userName = session?.user?.name ?? '—'
   const initials = userName !== '—' ? userName.charAt(0).toUpperCase() : '?'
-  const currencySymbol = prefs?.currency?.symbol ?? '$'
-  const formattedBalance = MOCK_BALANCE.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
 
   return (
     <header className="flex h-16 items-center gap-4 border-b border-slate-100 bg-white px-6">
@@ -35,14 +26,6 @@ export function Header({ placeholder = 'Search analytics...' }: HeaderProps) {
       </div>
 
       <div className="ml-auto flex items-center gap-3">
-        {/* Balance */}
-        <div className="text-right">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">Balance</p>
-          <p className="text-sm font-bold text-slate-900">
-            {currencySymbol}{formattedBalance}
-          </p>
-        </div>
-
         {/* Icon buttons */}
         <button className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">
           <Bell className="h-4 w-4" />

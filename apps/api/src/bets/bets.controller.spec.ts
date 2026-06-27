@@ -19,6 +19,7 @@ const mockBet: Bet = {
   result: BetResult.PENDING,
   notes: null,
   profit: null,
+  bookmaker: null,
   user: mockUser,
   createdAt: new Date(),
   updatedAt: new Date(),

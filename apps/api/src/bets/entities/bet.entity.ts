@@ -3,12 +3,14 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  JoinColumn,
   Index,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm'
 import { BetResult, BetType } from '@bettracker/shared'
 import { User } from '../../users/entities/user.entity'
+import { Bookmaker } from '../../bookmakers/entities/bookmaker.entity'
 
 @Entity('bets')
 export class Bet {
@@ -45,6 +47,10 @@ export class Bet {
   @Index()
   @ManyToOne(() => User, (user) => user.bets, { onDelete: 'CASCADE' })
   user: User
+
+  @ManyToOne(() => Bookmaker, (bk) => bk.bets, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'bookmaker_id' })
+  bookmaker: Bookmaker | null
 
   @CreateDateColumn()
   createdAt: Date

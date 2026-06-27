@@ -18,6 +18,7 @@ const mockBet: Bet = {
   result: BetResult.PENDING,
   notes: null,
   profit: null,
+  bookmaker: null,
   user: { id: 'user-1' } as unknown as User,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -138,7 +139,7 @@ describe('BetsService', () => {
 
       const stats = await service.getStats('user-1')
 
-      expect(stats).toEqual({ totalBets: 0, settledBets: 0, winRate: 0, roi: 0, netProfit: 0 })
+      expect(stats).toMatchObject({ totalBets: 0, settledBets: 0, winRate: 0, roi: 0, netProfit: 0, roiDelta: 0, netProfitMonthly: 0 })
     })
 
     it('should return zero winRate and roi when all bets are pending', async () => {

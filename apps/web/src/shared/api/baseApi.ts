@@ -3,7 +3,7 @@ import { getSession } from 'next-auth/react'
 
 export const baseApi = createApi({
   reducerPath: 'api',
-  tagTypes: ['UserPreferences', 'UserProfile'],
+  tagTypes: ['UserPreferences', 'UserProfile', 'Bets', 'BetStats', 'Bookmakers', 'BookmakerStats', 'Analytics', 'Sports', 'ExchangeRates'],
   baseQuery: fetchBaseQuery({
     baseUrl: `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/api`,
     prepareHeaders: async (headers) => {

@@ -3,7 +3,9 @@
 import { useSession } from 'next-auth/react'
 import { TrendingUp, BarChart2, ShieldCheck, DollarSign, ArrowRight, Zap } from 'lucide-react'
 import { ResultBadge } from '@/shared/ui/ResultBadge'
-import { mockStats, mockBets, mockBookmakers } from '@/shared/lib/mock-data'
+import { useGetBetStatsQuery, useGetBetsQuery } from '@/entities/bet/api/bets.api'
+import { useGetBookmakerStatsQuery } from '@/entities/bookmaker/api/bookmakers.api'
+import { useCurrency } from '@/shared/lib/use-currency'
 
 function StatCard({
   label,
@@ -47,9 +49,27 @@ function StatCard({
   )
 }
 
+function StatCardSkeleton() {
+  return (
+    <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm animate-pulse">
+      <div className="h-10 w-10 rounded-lg bg-slate-100" />
+      <div className="mt-4 h-3 w-24 rounded bg-slate-100" />
+      <div className="mt-2 h-8 w-32 rounded bg-slate-100" />
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const { data: session } = useSession()
   const firstName = session?.user?.name?.split(' ')[0] ?? 'there'
+
+  const { data: stats, isLoading: statsLoading } = useGetBetStatsQuery()
+  const { data: bets, isLoading: betsLoading } = useGetBetsQuery()
+  const { data: bookmakerStats, isLoading: bookmakersLoading } = useGetBookmakerStatsQuery()
+  const { format } = useCurrency()
+
+  const recentBets = bets?.slice(0, 5) ?? []
+  const topBookmakers = bookmakerStats?.slice(0, 3) ?? []
 
   return (
     <>
@@ -57,37 +77,54 @@ export default function DashboardPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Welcome back, {firstName}</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Your betting portfolio is up{' '}
-          <span className="font-semibold text-green-500">+{mockStats.roi}%</span> this month. Keep it up!
+          {stats ? (
+            <>
+              Your betting portfolio is{' '}
+              {stats.roi >= 0 ? (
+                <>up <span className="font-semibold text-green-500">+{stats.roi}%</span></>
+              ) : (
+                <>down <span className="font-semibold text-red-500">{stats.roi}%</span></>
+              )}{' '}
+              this month. Keep it up!
+            </>
+          ) : (
+            'Loading your portfolio...'
+          )}
         </p>
       </div>
 
       {/* Stats Grid */}
       <div className="mb-8 grid grid-cols-4 gap-4">
-        <StatCard
-          label="Return on Investment"
-          value={`+${mockStats.roi}%`}
-          delta={`${mockStats.roiDelta}%`}
-          deltaPositive
-          icon={TrendingUp}
-        />
-        <StatCard
-          label="Total Bets Placed"
-          value={String(mockStats.totalBets)}
-          icon={BarChart2}
-        />
-        <StatCard
-          label="Win Rate"
-          value={`${mockStats.winRate}%`}
-          badge="Top 5%"
-          icon={ShieldCheck}
-        />
-        <StatCard
-          label="Net Profit (Monthly)"
-          value={`$${mockStats.netProfit.toLocaleString()}`}
-          accentValue
-          icon={DollarSign}
-        />
+        {statsLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
+        ) : (
+          <>
+            <StatCard
+              label="Return on Investment"
+              value={`${stats?.roi ?? 0 >= 0 ? '+' : ''}${stats?.roi ?? 0}%`}
+              delta={`${stats?.roiDelta ?? 0}%`}
+              deltaPositive={(stats?.roiDelta ?? 0) >= 0}
+              icon={TrendingUp}
+            />
+            <StatCard
+              label="Total Bets Placed"
+              value={String(stats?.totalBets ?? 0)}
+              icon={BarChart2}
+            />
+            <StatCard
+              label="Win Rate"
+              value={`${stats?.winRate ?? 0}%`}
+              badge="Top 5%"
+              icon={ShieldCheck}
+            />
+            <StatCard
+              label="Net Profit (Monthly)"
+              value={format(stats?.netProfitMonthly ?? 0)}
+              accentValue
+              icon={DollarSign}
+            />
+          </>
+        )}
       </div>
 
       {/* Recent Bets */}
@@ -97,9 +134,9 @@ export default function DashboardPage() {
             <Zap className="h-4 w-4 text-slate-400" />
             <h2 className="text-sm font-semibold text-slate-900">Recent Bets</h2>
           </div>
-          <button className="flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700">
+          <a href="/bets" className="flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700">
             View all <ArrowRight className="h-3.5 w-3.5" />
-          </button>
+          </a>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -116,23 +153,41 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {mockBets.map((bet) => (
-                <tr key={bet.id} className="transition-colors hover:bg-slate-50/50">
-                  <td className="px-6 py-4 text-slate-400">
-                    {new Date(bet.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-slate-900">{bet.match}</p>
-                    <p className="text-xs text-slate-400">{bet.league}</p>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">{bet.betType}</td>
-                  <td className="px-6 py-4 font-medium text-slate-900">{bet.odds}</td>
-                  <td className="px-6 py-4 text-slate-600">${bet.stake.toFixed(2)}</td>
-                  <td className="px-6 py-4">
-                    <ResultBadge result={bet.result} />
+              {betsLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    {Array.from({ length: 6 }).map((__, j) => (
+                      <td key={j} className="px-6 py-4">
+                        <div className="h-4 rounded bg-slate-100" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : recentBets.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400">
+                    No bets yet. Add your first bet to get started.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                recentBets.map((bet) => (
+                  <tr key={bet.id} className="transition-colors hover:bg-slate-50/50">
+                    <td className="px-6 py-4 text-slate-400">
+                      {new Date(bet.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-slate-900">{bet.match}</p>
+                      <p className="text-xs text-slate-400">{bet.league}</p>
+                    </td>
+                    <td className="px-6 py-4 text-slate-600">{bet.betType}</td>
+                    <td className="px-6 py-4 font-medium text-slate-900">{bet.odds}</td>
+                    <td className="px-6 py-4 text-slate-600">{format(Number(bet.stake))}</td>
+                    <td className="px-6 py-4">
+                      <ResultBadge result={bet.result} />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -162,25 +217,38 @@ export default function DashboardPage() {
         {/* Top Bookmakers */}
         <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
           <h3 className="mb-4 text-sm font-semibold text-slate-900">Top Bookmakers</h3>
-          <div className="space-y-3">
-            {mockBookmakers.slice(0, 3).map((bk) => (
-              <div key={bk.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-bold text-white"
-                    style={{ backgroundColor: bk.color }}
-                  >
-                    {bk.shortName.charAt(0)}
-                  </div>
-                  <span className="text-sm font-medium text-slate-900">{bk.name}</span>
+          {bookmakersLoading ? (
+            <div className="space-y-3 animate-pulse">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="h-7 w-7 rounded-md bg-slate-100" />
+                  <div className="h-4 w-24 rounded bg-slate-100" />
                 </div>
-                <span className="text-sm font-semibold text-violet-600">{bk.volumePct}% Vol.</span>
-              </div>
-            ))}
-          </div>
-          <button className="mt-4 w-full text-center text-xs font-medium text-slate-400 hover:text-violet-600 transition-colors">
+              ))}
+            </div>
+          ) : topBookmakers.length === 0 ? (
+            <p className="text-sm text-slate-400">No bookmakers yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {topBookmakers.map(({ bookmaker, volumePct }) => (
+                <div key={bookmaker.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-bold text-white"
+                      style={{ backgroundColor: bookmaker.color }}
+                    >
+                      {bookmaker.shortName.charAt(0)}
+                    </div>
+                    <span className="text-sm font-medium text-slate-900">{bookmaker.name}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-violet-600">{volumePct}% Vol.</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <a href="/bookmakers" className="mt-4 block w-full text-center text-xs font-medium text-slate-400 hover:text-violet-600 transition-colors">
             Manage Bookies
-          </button>
+          </a>
         </div>
       </div>
     </>

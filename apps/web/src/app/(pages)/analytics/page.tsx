@@ -1,6 +1,7 @@
 'use client'
 
-import { TrendingUp, Target, Percent, Scale, AlertTriangle, Bell, BarChart2 } from 'lucide-react'
+import { useState } from 'react'
+import { TrendingUp, Target, Percent, Scale, AlertTriangle, Bell } from 'lucide-react'
 import {
   AreaChart,
   Area,
@@ -12,9 +13,28 @@ import {
   PieChart,
   Pie,
 } from 'recharts'
-import { mockProfitData, mockSports, mockBookmakers } from '@/shared/lib/mock-data'
+import { useGetAnalyticsOverviewQuery, type Period } from '@/entities/analytics/api/analytics.api'
+import { useCurrency } from '@/shared/lib/use-currency'
 
-const periods = ['7D', '30D', '90D', 'YTD']
+const PERIODS: Period[] = ['7D', '30D', '90D', 'YTD']
+
+const SPORT_COLORS: Record<string, string> = {
+  Football: '#7c3aed',
+  Soccer: '#7c3aed',
+  Basketball: '#8b5cf6',
+  NBA: '#8b5cf6',
+  Tennis: '#a78bfa',
+  'American Football': '#c4b5fd',
+  NFL: '#c4b5fd',
+  Baseball: '#ddd6fe',
+  Hockey: '#6d28d9',
+  MMA: '#5b21b6',
+}
+const FALLBACK_COLORS = ['#7c3aed', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#6d28d9']
+
+function getSportColor(sport: string, index: number): string {
+  return SPORT_COLORS[sport] ?? FALLBACK_COLORS[index % FALLBACK_COLORS.length]
+}
 
 function MetricCard({
   label,
@@ -45,7 +65,26 @@ function MetricCard({
   )
 }
 
+function MetricCardSkeleton() {
+  return (
+    <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm animate-pulse">
+      <div className="h-3 w-20 rounded bg-slate-100" />
+      <div className="mt-3 h-7 w-24 rounded bg-slate-100" />
+      <div className="mt-2 h-4 w-16 rounded bg-slate-100" />
+    </div>
+  )
+}
+
 export default function AnalyticsPage() {
+  const [period, setPeriod] = useState<Period>('30D')
+  const { data, isLoading } = useGetAnalyticsOverviewQuery(period)
+  const { format, toDisplay } = useCurrency()
+
+  const sportDistributionWithColors = (data?.sportDistribution ?? []).map((s, i) => ({
+    ...s,
+    color: getSportColor(s.sport, i),
+  }))
+
   return (
     <>
       {/* Page header */}
@@ -55,11 +94,12 @@ export default function AnalyticsPage() {
           <p className="mt-1 text-sm text-slate-500">Comprehensive breakdown of your wagering portfolio.</p>
         </div>
         <div className="flex rounded-lg border border-slate-200 bg-white p-1">
-          {periods.map((p) => (
+          {PERIODS.map((p) => (
             <button
               key={p}
+              onClick={() => setPeriod(p)}
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-                p === '30D'
+                p === period
                   ? 'bg-violet-600 text-white'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
@@ -72,10 +112,42 @@ export default function AnalyticsPage() {
 
       {/* Metric cards */}
       <div className="mb-6 grid grid-cols-4 gap-4">
-        <MetricCard label="Total Profit" value="$12,450.80" delta="+12.4%" positive icon={TrendingUp} />
-        <MetricCard label="Win Rate" value="58.4%" delta="+2.1%" positive note="vs last period" icon={Target} />
-        <MetricCard label="ROI" value="14.2%" delta="-0.5%" positive={false} note="Stable" icon={Percent} />
-        <MetricCard label="Avg. Odds" value="2.10" delta="Stable" positive icon={Scale} />
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <MetricCardSkeleton key={i} />)
+        ) : (
+          <>
+            <MetricCard
+              label="Total Profit"
+              value={format(data?.totalProfit ?? 0)}
+              delta={`${(data?.totalProfit ?? 0) >= 0 ? '+' : ''}${data?.roi ?? 0}%`}
+              positive={(data?.totalProfit ?? 0) >= 0}
+              icon={TrendingUp}
+            />
+            <MetricCard
+              label="Win Rate"
+              value={`${data?.winRate ?? 0}%`}
+              delta={`${data?.winRate ?? 0}%`}
+              positive={(data?.winRate ?? 0) >= 50}
+              note="of settled bets"
+              icon={Target}
+            />
+            <MetricCard
+              label="ROI"
+              value={`${data?.roi ?? 0}%`}
+              delta={`${(data?.roi ?? 0) >= 0 ? '+' : ''}${data?.roi ?? 0}%`}
+              positive={(data?.roi ?? 0) >= 0}
+              note="on stake"
+              icon={Percent}
+            />
+            <MetricCard
+              label="Avg. Odds"
+              value={String(data?.avgOdds ?? '—')}
+              delta="Stable"
+              positive
+              icon={Scale}
+            />
+          </>
+        )}
       </div>
 
       {/* Charts row */}
@@ -88,24 +160,36 @@ export default function AnalyticsPage() {
               <p className="text-xs text-slate-400">Net growth across all sport markets</p>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={mockProfitData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ borderRadius: '8px', border: '1px solid #f1f5f9', fontSize: 12 }}
-                formatter={(v: number) => [`$${v}`, '']}
-              />
-              <Area type="monotone" dataKey="profit" stroke="#7c3aed" strokeWidth={2} fill="url(#profitGrad)" />
-              <Area type="monotone" dataKey="avg" stroke="#c4b5fd" strokeWidth={1.5} strokeDasharray="4 4" fill="none" />
-            </AreaChart>
-          </ResponsiveContainer>
+          {isLoading ? (
+            <div className="h-[220px] animate-pulse rounded-lg bg-slate-50" />
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={data?.profitOverTime ?? []} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: number) => format(v, 0)}
+                />
+                <Tooltip
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #f1f5f9', fontSize: 12 }}
+                  formatter={(v: number, name: string) => [
+                    format(v),
+                    name === 'profit' ? 'Cumulative Profit' : 'Avg per interval',
+                  ]}
+                />
+                <Area type="monotone" dataKey="profit" stroke="#7c3aed" strokeWidth={2} fill="url(#profitGrad)" />
+                <Area type="monotone" dataKey="avg" stroke="#c4b5fd" strokeWidth={1.5} strokeDasharray="4 4" fill="none" />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
           <div className="mt-2 flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-xs text-slate-500">
               <span className="h-2 w-4 rounded-full bg-violet-600" /> Profit Line
@@ -119,40 +203,48 @@ export default function AnalyticsPage() {
         {/* Sport Distribution */}
         <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
           <h3 className="mb-1 text-sm font-semibold text-slate-900">Sport Distribution</h3>
-          <div className="flex flex-col items-center">
-            <div className="relative">
-              <PieChart width={160} height={160}>
-                <Pie
-                  data={mockSports}
-                  cx={75}
-                  cy={75}
-                  innerRadius={50}
-                  outerRadius={72}
-                  dataKey="pct"
-                  strokeWidth={0}
-                >
-                  {mockSports.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">Leader</p>
-                <p className="text-sm font-bold text-slate-900">NBA</p>
+          {isLoading ? (
+            <div className="mt-4 h-40 animate-pulse rounded-lg bg-slate-50" />
+          ) : sportDistributionWithColors.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-400">No bets in this period.</p>
+          ) : (
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <PieChart width={160} height={160}>
+                  <Pie
+                    data={sportDistributionWithColors}
+                    cx={75}
+                    cy={75}
+                    innerRadius={50}
+                    outerRadius={72}
+                    dataKey="pct"
+                    strokeWidth={0}
+                  >
+                    {sportDistributionWithColors.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">Leader</p>
+                  <p className="text-sm font-bold text-slate-900">
+                    {sportDistributionWithColors[0]?.sport ?? '—'}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-2 w-full space-y-2">
+                {sportDistributionWithColors.map((s) => (
+                  <div key={s.sport} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: s.color }} />
+                      <span className="text-slate-600">{s.sport}</span>
+                    </div>
+                    <span className="font-semibold text-slate-900">{s.pct}%</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="mt-2 w-full space-y-2">
-              {mockSports.map((s) => (
-                <div key={s.sport} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: s.color }} />
-                    <span className="text-slate-600">{s.sport}</span>
-                  </div>
-                  <span className="font-semibold text-slate-900">{s.pct}%</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -167,27 +259,43 @@ export default function AnalyticsPage() {
             <span className="h-2 w-2 rounded-full bg-violet-600" /> Total Turnover
           </div>
         </div>
-        <div className="space-y-4">
-          {mockBookmakers.map((bk) => (
-            <div key={bk.id}>
-              <div className="mb-1.5 flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-900">{bk.name}</span>
-                <span className="text-slate-500">
-                  ${bk.volume.toLocaleString()}{' '}
-                  <span className={`font-semibold ${bk.roi > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    | {bk.roi > 0 ? '+' : ''}{bk.roi}%
-                  </span>
-                </span>
+        {isLoading ? (
+          <div className="space-y-4 animate-pulse">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i}>
+                <div className="mb-1.5 h-4 w-48 rounded bg-slate-100" />
+                <div className="h-2.5 w-full rounded-full bg-slate-100" />
               </div>
-              <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full bg-violet-600 transition-all"
-                  style={{ width: `${(bk.volume / 60000) * 100}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (data?.bookmakerYield ?? []).length === 0 ? (
+          <p className="text-sm text-slate-400">No bookmaker data for this period.</p>
+        ) : (
+          <div className="space-y-4">
+            {(data?.bookmakerYield ?? []).map((bk) => {
+              const maxVolume = Math.max(...(data?.bookmakerYield ?? []).map((b) => b.volume), 1)
+              return (
+                <div key={bk.id}>
+                  <div className="mb-1.5 flex items-center justify-between text-sm">
+                    <span className="font-medium text-slate-900">{bk.name}</span>
+                    <span className="text-slate-500">
+                      {format(bk.volume, 0)}{' '}
+                      <span className={`font-semibold ${bk.roi > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        | {bk.roi > 0 ? '+' : ''}{bk.roi}%
+                      </span>
+                    </span>
+                  </div>
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-violet-600 transition-all"
+                      style={{ width: `${(bk.volume / maxVolume) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Alerts */}

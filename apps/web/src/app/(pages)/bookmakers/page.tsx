@@ -1,9 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { TrendingUp, TrendingDown, DollarSign, BarChart2, Plus } from 'lucide-react'
-import { mockBookmakers, mockStats } from '@/shared/lib/mock-data'
-
-const totalVolume = mockBookmakers.reduce((sum, bk) => sum + bk.volume, 0)
+import { useGetBookmakerStatsQuery } from '@/entities/bookmaker/api/bookmakers.api'
 
 function RoiBadge({ roi }: { roi: number }) {
   const positive = roi >= 0
@@ -20,6 +19,11 @@ function RoiBadge({ roi }: { roi: number }) {
 }
 
 export default function BookmakersPage() {
+  const { data: stats = [], isLoading } = useGetBookmakerStatsQuery()
+
+  const totalVolume = stats.reduce((sum, s) => sum + s.volume, 0)
+  const bestRoi = stats.length > 0 ? Math.max(...stats.map((s) => s.roi)) : 0
+
   return (
     <>
       {/* Page header */}
@@ -39,17 +43,17 @@ export default function BookmakersPage() {
         {[
           {
             label: 'Platforms',
-            value: mockBookmakers.length,
+            value: isLoading ? '...' : String(stats.length),
             icon: BarChart2,
           },
           {
             label: 'Total Volume',
-            value: `$${totalVolume.toLocaleString()}`,
+            value: isLoading ? '...' : `$${totalVolume.toLocaleString()}`,
             icon: DollarSign,
           },
           {
             label: 'Best ROI',
-            value: `+${Math.max(...mockBookmakers.map((b) => b.roi))}%`,
+            value: isLoading ? '...' : `+${bestRoi}%`,
             icon: TrendingUp,
           },
         ].map(({ label, value, icon: Icon }) => (
@@ -69,57 +73,77 @@ export default function BookmakersPage() {
       </div>
 
       {/* Bookmaker cards */}
-      <div className="mb-8 grid grid-cols-2 gap-4">
-        {mockBookmakers.map((bk) => {
-          const shareWidth = `${bk.volumePct}%`
-          return (
+      {isLoading ? (
+        <div className="mb-8 grid grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="animate-pulse rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-slate-100" />
+                  <div>
+                    <div className="h-4 w-24 rounded bg-slate-100" />
+                    <div className="mt-1 h-3 w-12 rounded bg-slate-100" />
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 h-2 w-full rounded-full bg-slate-100" />
+            </div>
+          ))}
+        </div>
+      ) : stats.length === 0 ? (
+        <div className="mb-8 rounded-xl border border-slate-100 bg-white p-12 text-center shadow-sm">
+          <p className="text-sm text-slate-400">No bookmakers yet. Add your first one to start tracking.</p>
+        </div>
+      ) : (
+        <div className="mb-8 grid grid-cols-2 gap-4">
+          {stats.map(({ bookmaker, volume, roi, volumePct }) => (
             <div
-              key={bk.id}
+              key={bookmaker.id}
               className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="mb-4 flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div
                     className="flex h-10 w-10 items-center justify-center rounded-xl text-base font-bold text-white"
-                    style={{ backgroundColor: bk.color }}
+                    style={{ backgroundColor: bookmaker.color }}
                   >
-                    {bk.shortName.charAt(0)}
+                    {bookmaker.shortName.charAt(0)}
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900">{bk.name}</p>
-                    <p className="text-xs text-slate-400">{bk.shortName}</p>
+                    <p className="font-semibold text-slate-900">{bookmaker.name}</p>
+                    <p className="text-xs text-slate-400">{bookmaker.shortName}</p>
                   </div>
                 </div>
-                <RoiBadge roi={bk.roi} />
+                <RoiBadge roi={roi} />
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Volume</p>
-                  <p className="mt-1 font-semibold text-slate-900">${bk.volume.toLocaleString()}</p>
+                  <p className="mt-1 font-semibold text-slate-900">${volume.toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Portfolio Share</p>
-                  <p className="mt-1 font-semibold text-slate-900">{bk.volumePct}%</p>
+                  <p className="mt-1 font-semibold text-slate-900">{volumePct}%</p>
                 </div>
               </div>
 
               <div className="mt-4">
                 <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
                   <span>Share of total volume</span>
-                  <span>{bk.volumePct}%</span>
+                  <span>{volumePct}%</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                   <div
                     className="h-full rounded-full transition-all"
-                    style={{ width: shareWidth, backgroundColor: bk.color }}
+                    style={{ width: `${volumePct}%`, backgroundColor: bookmaker.color }}
                   />
                 </div>
               </div>
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Comparison table */}
       <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
@@ -140,41 +164,59 @@ export default function BookmakersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {mockBookmakers.map((bk) => (
-              <tr key={bk.id} className="transition-colors hover:bg-slate-50/50">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-bold text-white"
-                      style={{ backgroundColor: bk.color }}
-                    >
-                      {bk.shortName.charAt(0)}
-                    </div>
-                    <span className="font-medium text-slate-900">{bk.name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-slate-700">${bk.volume.toLocaleString()}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${bk.volumePct}%`, backgroundColor: bk.color }}
-                      />
-                    </div>
-                    <span className="text-slate-500">{bk.volumePct}%</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <RoiBadge roi={bk.roi} />
-                </td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">
-                    Active
-                  </span>
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  {Array.from({ length: 5 }).map((__, j) => (
+                    <td key={j} className="px-6 py-4">
+                      <div className="h-4 rounded bg-slate-100" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : stats.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-400">
+                  No bookmakers to compare.
                 </td>
               </tr>
-            ))}
+            ) : (
+              stats.map(({ bookmaker, volume, volumePct, roi }) => (
+                <tr key={bookmaker.id} className="transition-colors hover:bg-slate-50/50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-bold text-white"
+                        style={{ backgroundColor: bookmaker.color }}
+                      >
+                        {bookmaker.shortName.charAt(0)}
+                      </div>
+                      <span className="font-medium text-slate-900">{bookmaker.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-slate-700">${volume.toLocaleString()}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${volumePct}%`, backgroundColor: bookmaker.color }}
+                        />
+                      </div>
+                      <span className="text-slate-500">{volumePct}%</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <RoiBadge roi={roi} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${bookmaker.isActive ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                      {bookmaker.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

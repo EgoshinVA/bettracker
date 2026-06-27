@@ -1,0 +1,17 @@
+{
+  "name": "BetTracker",
+  "short_name": "BetTracker",
+  "description": "Professional sports betting analytics — track ROI, win rate, and profit by sport and bookmaker.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

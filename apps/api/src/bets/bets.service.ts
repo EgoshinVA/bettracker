@@ -13,10 +13,12 @@ export class BetsService {
   ) {}
 
   async createBet(userId: string, dto: CreateBetDto): Promise<Bet> {
+    const { bookmakerId, ...rest } = dto
     const bet = this.betsRepository.create({
-      ...dto,
+      ...rest,
       result: BetResult.PENDING,
       user: { id: userId },
+      bookmaker: bookmakerId ? { id: bookmakerId } : null,
     })
     return this.betsRepository.save(bet)
   }
@@ -59,12 +61,31 @@ export class BetsService {
     const totalStake = settled.reduce((s, b) => s + Number(b.stake), 0)
     const totalProfit = settled.reduce((s, b) => s + Number(b.profit ?? 0), 0)
 
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const monthlySettled = settled.filter((b) => b.createdAt >= startOfMonth)
+    const prevMonthSettled = settled.filter(
+      (b) => b.createdAt >= prevMonthStart && b.createdAt < startOfMonth,
+    )
+
+    const netProfitMonthly = monthlySettled.reduce((s, b) => s + Number(b.profit ?? 0), 0)
+    const prevMonthProfit = prevMonthSettled.reduce((s, b) => s + Number(b.profit ?? 0), 0)
+    const prevMonthStake = prevMonthSettled.reduce((s, b) => s + Number(b.stake), 0)
+
+    const roi = totalStake ? Math.round((totalProfit / totalStake) * 100 * 10) / 10 : 0
+    const prevRoi = prevMonthStake
+      ? Math.round((prevMonthProfit / prevMonthStake) * 100 * 10) / 10
+      : 0
+
     return {
       totalBets: bets.length,
       settledBets: settled.length,
       winRate: settled.length ? Math.round((won.length / settled.length) * 100) : 0,
-      roi: totalStake ? Math.round((totalProfit / totalStake) * 100 * 10) / 10 : 0,
+      roi,
+      roiDelta: Math.round((roi - prevRoi) * 10) / 10,
       netProfit: Math.round(totalProfit * 100) / 100,
+      netProfitMonthly: Math.round(netProfitMonthly * 100) / 100,
     }
   }
 }

@@ -1,4 +1,4 @@
-import { IsString, IsNumber, Min, IsEnum, IsOptional } from 'class-validator'
+import { IsString, IsNumber, Min, IsEnum, IsOptional, IsUUID } from 'class-validator'
 import { BetType } from '@bettracker/shared'
 
 export class CreateBetDto {
@@ -25,4 +25,8 @@ export class CreateBetDto {
   @IsString()
   @IsOptional()
   notes?: string
+
+  @IsUUID()
+  @IsOptional()
+  bookmakerId?: string
 }

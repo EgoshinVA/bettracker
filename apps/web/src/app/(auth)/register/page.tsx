@@ -2,7 +2,10 @@ import type { Metadata } from 'next'
 import { RegisterForm } from '@/features/auth'
 
 export const metadata: Metadata = {
-  title: 'Create account — BetTracker',
+  title: 'Create Free Account',
+  description:
+    'Join BetTracker and start tracking your sports bets professionally. Free forever — no credit card required.',
+  robots: { index: true, follow: true },
 }
 
 export default function RegisterPage() {

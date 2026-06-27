@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import { LoginForm } from '@/features/auth'
 
 export const metadata: Metadata = {
-  title: 'Sign in — BetTracker',
+  title: 'Sign In',
+  description: 'Sign in to your BetTracker account and access your betting analytics dashboard.',
+  robots: { index: true, follow: true },
 }
 
 interface LoginPageProps {

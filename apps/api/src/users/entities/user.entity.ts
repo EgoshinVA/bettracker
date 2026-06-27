@@ -10,6 +10,7 @@ import {
 import { UserRole, SubscriptionStatus } from '@bettracker/shared'
 import { Bet } from '../../bets/entities/bet.entity'
 import { RefreshToken } from '../../auth/entities/refresh-token.entity'
+import { Bookmaker } from '../../bookmakers/entities/bookmaker.entity'
 
 @Entity('users')
 export class User {
@@ -43,6 +44,9 @@ export class User {
 
   @OneToMany(() => RefreshToken, (token) => token.user)
   refreshTokens: RefreshToken[]
+
+  @OneToMany(() => Bookmaker, (bk) => bk.user)
+  bookmakers: Bookmaker[]
 
   @CreateDateColumn()
   createdAt: Date

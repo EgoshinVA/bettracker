@@ -17,6 +17,7 @@ const mockUser: User = {
   subscriptionExpiresAt: null,
   bets: [],
   refreshTokens: [],
+  bookmakers: [],
   createdAt: new Date(),
   updatedAt: new Date(),
 }

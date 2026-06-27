@@ -12,6 +12,7 @@ export interface Bet {
   result: BetResult
   notes: string | null
   profit: number | null
+  bookmakerId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -24,6 +25,7 @@ export interface CreateBetRequest {
   stake: number
   betType: BetType
   notes?: string
+  bookmakerId?: string
 }
 
 export interface UpdateBetResultRequest {
@@ -35,7 +37,9 @@ export interface BetStats {
   settledBets: number
   winRate: number
   roi: number
+  roiDelta: number
   netProfit: number
+  netProfitMonthly: number
 }
 
 export interface PaginatedResponse<T> {
