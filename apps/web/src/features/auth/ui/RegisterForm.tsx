@@ -1,6 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
+import { toast } from 'react-hot-toast'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { registerSchema, type RegisterFormData } from '@/shared/lib/validations/auth'
@@ -8,7 +11,16 @@ import { FormInput } from '@/shared/ui/FormInput'
 import { PasswordInput } from '@/shared/ui/PasswordInput'
 import { PasswordStrengthBar } from '@/shared/ui/PasswordStrengthBar'
 
-export function RegisterForm() {
+interface RegisterFormProps {
+  onSuccess?: () => void
+  onSwitchMode?: () => void
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+
+export function RegisterForm({ onSuccess, onSwitchMode }: RegisterFormProps) {
+  const router = useRouter()
+
   const {
     register,
     handleSubmit,
@@ -20,11 +32,38 @@ export function RegisterForm() {
 
   const password = useWatch({ control, name: 'password', defaultValue: '' })
 
-  const onSubmit = async (_data: RegisterFormData) => {
-    // TODO: connect to API when backend is ready
-    // await authApi.register({ name: _data.name, email: _data.email, password: _data.password })
-    // router.push('/dashboard')
-    await new Promise((r) => setTimeout(r, 800)) // simulate network
+  const onSubmit = async (data: RegisterFormData) => {
+    const res = await fetch(`${API_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: data.name, email: data.email, password: data.password }),
+    })
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      const message =
+        res.status === 409
+          ? 'An account with this email already exists.'
+          : ((body.message as string | undefined) ?? 'Registration failed. Please try again.')
+      toast.error(message)
+      return
+    }
+
+    const result = await signIn('credentials', {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      toast.error('Account created — please sign in.')
+      return
+    }
+
+    toast.success('Welcome to BetTracker!')
+    onSuccess?.()
+    router.push('/dashboard')
+    router.refresh()
   }
 
   return (
@@ -82,12 +121,22 @@ export function RegisterForm() {
 
       <p className="text-center text-sm text-slate-500">
         Already have an account?{' '}
-        <Link
-          href="/login"
-          className="font-medium text-violet-600 hover:text-violet-700 transition-colors"
-        >
-          Sign in
-        </Link>
+        {onSwitchMode ? (
+          <button
+            type="button"
+            onClick={onSwitchMode}
+            className="font-medium text-violet-600 transition-colors hover:text-violet-700"
+          >
+            Sign in
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="font-medium text-violet-600 transition-colors hover:text-violet-700"
+          >
+            Sign in
+          </Link>
+        )}
       </p>
     </form>
   )

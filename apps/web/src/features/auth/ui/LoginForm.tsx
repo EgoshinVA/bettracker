@@ -1,13 +1,24 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
+import { toast } from 'react-hot-toast'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginFormData } from '@/shared/lib/validations/auth'
 import { FormInput } from '@/shared/ui/FormInput'
 import { PasswordInput } from '@/shared/ui/PasswordInput'
 
-export function LoginForm() {
+interface LoginFormProps {
+  onSuccess?: () => void
+  onSwitchMode?: () => void
+  callbackUrl?: string
+}
+
+export function LoginForm({ onSuccess, onSwitchMode, callbackUrl = '/dashboard' }: LoginFormProps) {
+  const router = useRouter()
+
   const {
     register,
     handleSubmit,
@@ -16,11 +27,22 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = async (_data: LoginFormData) => {
-    // TODO: connect to API when backend is ready
-    // const { accessToken } = await authApi.login(_data)
-    // router.push('/dashboard')
-    await new Promise((r) => setTimeout(r, 800)) // simulate network
+  const onSubmit = async (data: LoginFormData) => {
+    const result = await signIn('credentials', {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      toast.error('Invalid email or password. Please try again.')
+      return
+    }
+
+    toast.success('Welcome back!')
+    onSuccess?.()
+    router.push(callbackUrl)
+    router.refresh()
   }
 
   return (
@@ -45,7 +67,7 @@ export function LoginForm() {
         <div className="flex justify-end pt-0.5">
           <Link
             href="/forgot-password"
-            className="text-xs text-violet-600 hover:text-violet-700 hover:underline transition-colors"
+            className="text-xs text-violet-600 transition-colors hover:text-violet-700 hover:underline"
           >
             Forgot password?
           </Link>
@@ -69,12 +91,22 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-slate-500">
         Don&apos;t have an account?{' '}
-        <Link
-          href="/register"
-          className="font-medium text-violet-600 hover:text-violet-700 transition-colors"
-        >
-          Create one free
-        </Link>
+        {onSwitchMode ? (
+          <button
+            type="button"
+            onClick={onSwitchMode}
+            className="font-medium text-violet-600 transition-colors hover:text-violet-700"
+          >
+            Create one free
+          </button>
+        ) : (
+          <Link
+            href="/register"
+            className="font-medium text-violet-600 transition-colors hover:text-violet-700"
+          >
+            Create one free
+          </Link>
+        )}
       </p>
     </form>
   )

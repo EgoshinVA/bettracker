@@ -1,5 +1,5 @@
 import { IsString, IsNumber, Min, IsEnum, IsOptional } from 'class-validator'
-import { BetType } from '../entities/bet.entity'
+import { BetType } from '@bettracker/shared'
 
 export class CreateBetDto {
   @IsString()

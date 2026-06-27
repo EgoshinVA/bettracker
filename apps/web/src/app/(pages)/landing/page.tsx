@@ -1,5 +1,8 @@
-import Link from 'next/link'
+'use client'
+
+import { useState } from 'react'
 import { BarChart2, TrendingUp, Zap, Globe, Smartphone, ArrowRight } from 'lucide-react'
+import { AuthModal } from '@/features/auth'
 
 const features = [
   {
@@ -37,10 +40,12 @@ const features = [
 ]
 
 export default function LandingPage() {
+  const [authOpen, setAuthOpen] = useState(false)
+
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
+      <nav className="flex items-center justify-between border-b border-slate-100 px-8 py-5">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-600">
             <BarChart2 className="h-4 w-4 text-white" />
@@ -49,17 +54,21 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-8">
           {['Features', 'Analytics', 'Pricing'].map((item) => (
-            <a key={item} href="#" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <a
+              key={item}
+              href="#"
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+            >
               {item}
             </a>
           ))}
         </div>
-        <Link
-          href="/dashboard"
+        <button
+          onClick={() => setAuthOpen(true)}
           className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
         >
           Start tracking free
-        </Link>
+        </button>
       </nav>
 
       {/* Hero */}
@@ -68,23 +77,25 @@ export default function LandingPage() {
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-violet-600" />
-              <span className="text-xs font-semibold text-violet-700">Real-time Bookmaker Integration is Live</span>
+              <span className="text-xs font-semibold text-violet-700">
+                Real-time Bookmaker Integration is Live
+              </span>
             </div>
             <h1 className="text-5xl font-extrabold leading-tight text-slate-900">
               Elevate Your{' '}
               <span className="text-violet-600">Betting Strategy</span>
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-slate-500">
-              Professional-grade analytics for serious sports bettors. Transform your fragmented data into
-              actionable insights with our automated tracking suite.
+              Professional-grade analytics for serious sports bettors. Transform your fragmented data
+              into actionable insights with our automated tracking suite.
             </p>
             <div className="mt-8 flex items-center gap-4">
-              <Link
-                href="/dashboard"
+              <button
+                onClick={() => setAuthOpen(true)}
                 className="rounded-lg bg-violet-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
               >
                 Start tracking free
-              </Link>
+              </button>
               <button className="flex items-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
                 View Demo <ArrowRight className="h-4 w-4" />
               </button>
@@ -115,7 +126,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="mb-6 grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-slate-400">Net Profit</p>
                 <p className="text-2xl font-bold text-violet-600">+$14,284.50</p>
@@ -125,15 +136,12 @@ export default function LandingPage() {
                 <p className="text-2xl font-bold text-green-500">+12.4%</p>
               </div>
             </div>
-            <div className="flex items-end gap-1.5 h-28">
+            <div className="flex h-28 items-end gap-1.5">
               {[40, 55, 45, 65, 75, 90].map((h, i) => (
                 <div
                   key={i}
                   className="flex-1 rounded-t-md transition-all"
-                  style={{
-                    height: `${h}%`,
-                    backgroundColor: i === 5 ? '#7c3aed' : '#ede9fe',
-                  }}
+                  style={{ height: `${h}%`, backgroundColor: i === 5 ? '#7c3aed' : '#ede9fe' }}
                 />
               ))}
             </div>
@@ -151,8 +159,8 @@ export default function LandingPage() {
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold text-slate-900">Analytics for Every Move</h2>
           <p className="mt-3 text-slate-500">
-            Precision engineering for your betting bankroll. We provide the tools usually reserved for
-            quantitative hedge funds.
+            Precision engineering for your betting bankroll. We provide the tools usually reserved
+            for quantitative hedge funds.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-4">
@@ -167,7 +175,9 @@ export default function LandingPage() {
                 <Icon className={`h-5 w-5 ${dark ? 'text-violet-400' : 'text-violet-600'}`} />
               </div>
               <h3 className="mb-2 text-base font-bold">{title}</h3>
-              <p className={`text-sm leading-relaxed ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{body}</p>
+              <p className={`text-sm leading-relaxed ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
+                {body}
+              </p>
               {tags && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {tags.map((t) => (
@@ -191,39 +201,40 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl px-8 py-16 text-center">
         <h2 className="text-4xl font-extrabold text-slate-900">Stop Guessing. Start Winning.</h2>
         <p className="mx-auto mt-4 max-w-lg text-slate-500">
-          The top 5% of bettors use data to drive their decisions. Join the community and get the clarity
-          your bankroll deserves.
+          The top 5% of bettors use data to drive their decisions. Join the community and get the
+          clarity your bankroll deserves.
         </p>
         <div className="mt-8 flex items-center justify-center gap-4">
-          <Link
-            href="/dashboard"
+          <button
+            onClick={() => setAuthOpen(true)}
             className="rounded-lg bg-violet-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
           >
             Create Free Account
-          </Link>
+          </button>
           <button className="rounded-lg border border-slate-200 px-8 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
             Talk to Sales
           </button>
         </div>
         <p className="mt-6 text-sm italic text-slate-400">
-          "BetTracker changed how I view my losses. I finally found the leak in my MLB strategy." —
-          Professional Bettor
+          &ldquo;BetTracker changed how I view my losses. I finally found the leak in my MLB
+          strategy.&rdquo; — Professional Bettor
         </p>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-slate-100 px-8 py-12">
         <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-5 gap-8 mb-10">
+          <div className="mb-10 grid grid-cols-5 gap-8">
             <div className="col-span-1">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="mb-3 flex items-center gap-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-md bg-violet-600">
                   <BarChart2 className="h-3.5 w-3.5 text-white" />
                 </div>
                 <span className="text-sm font-bold text-slate-900">BetTracker</span>
               </div>
               <p className="text-xs leading-relaxed text-slate-400">
-                The analytical terminal for modern sports bettors. Precision, speed, and clarity for every wager.
+                The analytical terminal for modern sports bettors. Precision, speed, and clarity for
+                every wager.
               </p>
             </div>
             {[
@@ -233,11 +244,16 @@ export default function LandingPage() {
               { title: 'Legal', links: ['Privacy', 'Terms'] },
             ].map(({ title, links }) => (
               <div key={title}>
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-900">{title}</p>
+                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-900">
+                  {title}
+                </p>
                 <ul className="space-y-2">
                   {links.map((l) => (
                     <li key={l}>
-                      <a href="#" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">
+                      <a
+                        href="#"
+                        className="text-sm text-slate-400 transition-colors hover:text-slate-700"
+                      >
                         {l}
                       </a>
                     </li>
@@ -253,6 +269,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   )
 }

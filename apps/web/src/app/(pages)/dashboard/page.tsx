@@ -121,9 +121,11 @@ export default function DashboardPage() {
             <tbody className="divide-y divide-slate-50">
               {mockBets.map((bet) => (
                 <tr key={bet.id} className="transition-colors hover:bg-slate-50/50">
-                  <td className="px-6 py-4 text-slate-400">{bet.date}</td>
+                  <td className="px-6 py-4 text-slate-400">
+                    {new Date(bet.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </td>
                   <td className="px-6 py-4">
-                    <p className="font-medium text-slate-900">{bet.event}</p>
+                    <p className="font-medium text-slate-900">{bet.match}</p>
                     <p className="text-xs text-slate-400">{bet.league}</p>
                   </td>
                   <td className="px-6 py-4 text-slate-600">{bet.betType}</td>

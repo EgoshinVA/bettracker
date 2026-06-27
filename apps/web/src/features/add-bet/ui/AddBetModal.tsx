@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'react-hot-toast'
 
 interface AddBetModalProps {
   isOpen: boolean
@@ -28,6 +29,7 @@ export function AddBetModal({ isOpen, onClose }: AddBetModalProps) {
     console.log('New bet:', data)
     reset()
     onClose()
+    toast.success(`Bet added — ${data.sport} · ${data.league || data.betType}`)
   }
 
   if (!isOpen) return null

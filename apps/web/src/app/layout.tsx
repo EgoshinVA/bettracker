@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { SessionProvider } from '@/shared/ui/providers/SessionProvider'
+import { AppToaster } from '@/shared/ui/Toaster'
 
 export const metadata: Metadata = {
   title: 'BetTracker — Professional Analytics',
@@ -9,7 +11,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SessionProvider>{children}</SessionProvider>
+        <AppToaster />
+      </body>
     </html>
   )
 }

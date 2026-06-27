@@ -1,17 +1,9 @@
-export type BetResult = 'WON' | 'LOST' | 'PENDING'
-export type BetType = 'moneyline' | 'spread' | 'over_under' | 'parlay' | 'btts'
+// Single source of truth — re-exported from @bettracker/shared
+export type { User, Bet, BetStats, CreateBetRequest, UpdateBetResultRequest, PaginatedResponse } from '@bettracker/shared'
+export type { LoginRequest, RegisterRequest, AuthTokens, AuthResponse, RefreshTokenRequest } from '@bettracker/shared'
+export { BetResult, BetType, UserRole, SubscriptionStatus } from '@bettracker/shared'
 
-export interface Bet {
-  id: string
-  date: string
-  event: string
-  league: string
-  betType: string
-  odds: number
-  stake: number
-  result: BetResult
-  profit?: number
-}
+// ── Web-app display types (not part of API contract) ──────────────────────────
 
 export interface DashboardStats {
   roi: number
@@ -22,7 +14,7 @@ export interface DashboardStats {
   netProfitMonthly: number
 }
 
-export interface Bookmaker {
+export interface BookmakerDisplay {
   id: string
   name: string
   shortName: string

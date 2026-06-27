@@ -3,24 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  Index,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm'
+import { BetResult, BetType } from '@bettracker/shared'
 import { User } from '../../users/entities/user.entity'
-
-export enum BetResult {
-  WON = 'WON',
-  LOST = 'LOST',
-  PENDING = 'PENDING',
-}
-
-export enum BetType {
-  MONEYLINE = 'moneyline',
-  SPREAD = 'spread',
-  OVER_UNDER = 'over_under',
-  PARLAY = 'parlay',
-  BTTS = 'btts',
-}
 
 @Entity('bets')
 export class Bet {
@@ -54,6 +42,7 @@ export class Bet {
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   profit: number | null
 
+  @Index()
   @ManyToOne(() => User, (user) => user.bets, { onDelete: 'CASCADE' })
   user: User
 

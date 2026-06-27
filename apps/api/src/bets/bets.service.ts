@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Bet, BetResult } from './entities/bet.entity'
+import { BetResult } from '@bettracker/shared'
+import { Bet } from './entities/bet.entity'
 import { CreateBetDto } from './dto/create-bet.dto'
 
 @Injectable()
@@ -35,14 +36,9 @@ export class BetsService {
     return bet
   }
 
-  async updateResult(
-    userId: string,
-    id: string,
-    result: BetResult
-  ): Promise<Bet> {
+  async updateResult(userId: string, id: string, result: BetResult): Promise<Bet> {
     const bet = await this.findOne(userId, id)
     bet.result = result
-    // Calculate profit
     if (result === BetResult.WON) {
       bet.profit = Number((bet.stake * bet.odds - bet.stake).toFixed(2))
     } else if (result === BetResult.LOST) {

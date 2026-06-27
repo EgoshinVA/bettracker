@@ -1,11 +1,11 @@
 'use client'
 
-import { Search, Bell, HelpCircle, ChevronDown } from 'lucide-react'
+import { useSession, signOut } from 'next-auth/react'
+import { Search, Bell, HelpCircle, LogOut } from 'lucide-react'
 
 interface HeaderProps {
   placeholder?: string
   balance?: string
-  userName?: string
   userTier?: string
   showBalance?: boolean
   showAvatar?: boolean
@@ -14,11 +14,14 @@ interface HeaderProps {
 export function Header({
   placeholder = 'Search analytics...',
   balance,
-  userName = 'Alex Thorne',
-  userTier = 'Pro Tier',
+  userTier = 'Free',
   showBalance = false,
   showAvatar = false,
 }: HeaderProps) {
+  const { data: session } = useSession()
+  const userName = session?.user?.name ?? '—'
+  const initials = userName !== '—' ? userName.charAt(0).toUpperCase() : '?'
+
   return (
     <header className="flex h-16 items-center gap-4 border-b border-slate-100 bg-white px-6">
       {/* Search */}
@@ -40,7 +43,7 @@ export function Header({
           </div>
         )}
 
-        {/* Icons */}
+        {/* Icon buttons */}
         <button className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
           <Bell className="h-4 w-4" />
         </button>
@@ -52,18 +55,35 @@ export function Header({
 
         {/* User */}
         {showAvatar ? (
-          <button className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-slate-100 transition-colors">
-            <div className="h-7 w-7 rounded-full bg-slate-300" />
-            <div className="text-left">
-              <p className="text-sm font-semibold text-slate-900">{userName}</p>
-              <p className="text-xs text-slate-400">{userTier}</p>
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100">
+                <span className="text-xs font-bold text-violet-600">{initials}</span>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-slate-900">{userName}</p>
+                <p className="text-xs text-slate-400">{userTier}</p>
+              </div>
             </div>
-          </button>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              title="Sign out"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         ) : (
-          <button className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">
-            {userName}
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-medium text-slate-700">{userName}</span>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              title="Sign out"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         )}
       </div>
     </header>
