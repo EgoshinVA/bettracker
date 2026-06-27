@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common'
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { User } from './entities/user.entity'
+import { UpdateProfileDto } from './dto/update-profile.dto'
 
 @Injectable()
 export class UsersService {
@@ -27,6 +28,25 @@ export class UsersService {
       ...data,
       email: data.email.toLowerCase(),
     })
+    return this.usersRepository.save(user)
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<User> {
+    const user = await this.findById(userId)
+    if (!user) throw new NotFoundException('User not found')
+
+    if (dto.email !== undefined) {
+      const existing = await this.findByEmail(dto.email)
+      if (existing && existing.id !== userId) {
+        throw new ConflictException('Email is already in use')
+      }
+      user.email = dto.email
+    }
+
+    if (dto.name !== undefined) {
+      user.name = dto.name
+    }
+
     return this.usersRepository.save(user)
   }
 }

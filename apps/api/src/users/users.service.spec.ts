@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
+import { ConflictException, NotFoundException } from '@nestjs/common'
 import { UserRole, SubscriptionStatus } from '@bettracker/shared'
 import { UsersService } from './users.service'
 import { User } from './entities/user.entity'
@@ -139,6 +140,69 @@ describe('UsersService', () => {
       const result = await service.create({ email: 'a@b.com', name: 'A', password: 'p' })
 
       expect(result).toEqual(mockUser)
+    })
+  })
+
+  describe('updateProfile', () => {
+    it('should update name and return saved user', async () => {
+      const updated = { ...mockUser, name: 'New Name' }
+      repository.findOne.mockResolvedValue({ ...mockUser })
+      repository.save.mockResolvedValue(updated)
+
+      const result = await service.updateProfile('user-1', { name: 'New Name' })
+
+      expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({ name: 'New Name' }))
+      expect(result.name).toBe('New Name')
+    })
+
+    it('should update email when it is not taken by another user', async () => {
+      const updated = { ...mockUser, email: 'new@example.com' }
+      repository.findOne.mockResolvedValue({ ...mockUser })
+      mockQueryBuilder.getOne.mockResolvedValue(null)
+      repository.save.mockResolvedValue(updated)
+
+      const result = await service.updateProfile('user-1', { email: 'new@example.com' })
+
+      expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({ email: 'new@example.com' }))
+      expect(result.email).toBe('new@example.com')
+    })
+
+    it('should allow setting the same email the user already has', async () => {
+      repository.findOne.mockResolvedValue({ ...mockUser })
+      mockQueryBuilder.getOne.mockResolvedValue({ ...mockUser }) // same id
+      repository.save.mockResolvedValue(mockUser)
+
+      await expect(
+        service.updateProfile('user-1', { email: 'test@example.com' }),
+      ).resolves.toBeDefined()
+    })
+
+    it('should throw ConflictException when email belongs to another user', async () => {
+      repository.findOne.mockResolvedValue({ ...mockUser })
+      mockQueryBuilder.getOne.mockResolvedValue({ ...mockUser, id: 'user-2' })
+
+      await expect(
+        service.updateProfile('user-1', { email: 'taken@example.com' }),
+      ).rejects.toThrow(ConflictException)
+    })
+
+    it('should throw NotFoundException when user does not exist', async () => {
+      repository.findOne.mockResolvedValue(null)
+
+      await expect(
+        service.updateProfile('unknown', { name: 'Name' }),
+      ).rejects.toThrow(NotFoundException)
+    })
+
+    it('should only update fields that are provided', async () => {
+      repository.findOne.mockResolvedValue({ ...mockUser })
+      repository.save.mockResolvedValue(mockUser)
+
+      await service.updateProfile('user-1', { name: 'Only Name' })
+
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Only Name', email: mockUser.email }),
+      )
     })
   })
 })

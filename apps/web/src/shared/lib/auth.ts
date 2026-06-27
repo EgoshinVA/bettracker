@@ -45,7 +45,7 @@ export const authOptions: AuthOptions = {
   session: { strategy: 'jwt' },
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         return {
           ...token,
@@ -61,6 +61,11 @@ export const authOptions: AuthOptions = {
             isEmailVerified: user.isEmailVerified,
           },
         }
+      }
+
+      if (trigger === 'update' && session?.user) {
+        token.user = { ...token.user, ...session.user }
+        return token
       }
 
       if (Date.now() < token.accessTokenExpires) return token
