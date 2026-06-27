@@ -1,7 +1,6 @@
 'use client'
 
 import { TrendingUp, TrendingDown, DollarSign, BarChart2, Plus } from 'lucide-react'
-import { AppShell } from '@/widgets/app-shell/ui/AppShell'
 import { mockBookmakers, mockStats } from '@/shared/lib/mock-data'
 
 const totalVolume = mockBookmakers.reduce((sum, bk) => sum + bk.volume, 0)
@@ -22,7 +21,7 @@ function RoiBadge({ roi }: { roi: number }) {
 
 export default function BookmakersPage() {
   return (
-    <AppShell placeholder="Search bookmakers...">
+    <>
       {/* Page header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
@@ -179,6 +178,6 @@ export default function BookmakersPage() {
           </tbody>
         </table>
       </div>
-    </AppShell>
+    </>
   )
 }

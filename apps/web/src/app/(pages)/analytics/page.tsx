@@ -12,7 +12,6 @@ import {
   PieChart,
   Pie,
 } from 'recharts'
-import { AppShell } from '@/widgets/app-shell/ui/AppShell'
 import { mockProfitData, mockSports, mockBookmakers } from '@/shared/lib/mock-data'
 
 const periods = ['7D', '30D', '90D', 'YTD']
@@ -48,7 +47,7 @@ function MetricCard({
 
 export default function AnalyticsPage() {
   return (
-    <AppShell placeholder="Search analytics...">
+    <>
       {/* Page header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
@@ -225,6 +224,6 @@ export default function AnalyticsPage() {
           ))}
         </div>
       </div>
-    </AppShell>
+    </>
   )
 }

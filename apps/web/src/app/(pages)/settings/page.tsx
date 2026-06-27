@@ -1,7 +1,6 @@
 'use client'
 
 import { User, SlidersHorizontal, Download, AlertCircle, Check } from 'lucide-react'
-import { AppShell } from '@/widgets/app-shell/ui/AppShell'
 import { UpdateProfileForm } from '@/features/update-profile'
 import { AppPreferencesForm } from '@/features/update-preferences'
 
@@ -20,7 +19,7 @@ const proFeatures = [
 
 export default function SettingsPage() {
   return (
-    <AppShell placeholder="Search settings...">
+    <>
       <div className="grid h-full grid-cols-3 gap-6">
           {/* Left column */}
           <div className="col-span-2 min-h-0 overflow-y-auto">
@@ -155,6 +154,6 @@ export default function SettingsPage() {
             </div>
           </div>
       </div>
-    </AppShell>
+    </>
   )
 }

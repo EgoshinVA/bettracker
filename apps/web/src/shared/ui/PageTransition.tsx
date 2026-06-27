@@ -2,28 +2,23 @@
 
 import { motion } from 'framer-motion'
 
-const variants = {
-  hidden: (d: number) => ({ opacity: 0, x: d * 36 }),
-  enter: { opacity: 1, x: 0 },
-  exit: (d: number) => ({ opacity: 0, x: d * -36 }),
-}
-
-const transition = { duration: 0.22, ease: [0.4, 0, 0.2, 1] }
-
 interface PageTransitionProps {
   children: React.ReactNode
   direction: 1 | -1
 }
 
+// direction = 1  → going DOWN the nav (e.g. Dashboard → Settings):
+//   new page slides UP from below  (y: +offset → 0)
+// direction = -1 → going UP the nav (e.g. Settings → Dashboard):
+//   new page slides DOWN from above (y: -offset → 0)
+const OFFSET = 32
+
 export function PageTransition({ children, direction }: PageTransitionProps) {
   return (
     <motion.div
-      custom={direction}
-      variants={variants}
-      initial="hidden"
-      animate="enter"
-      exit="exit"
-      transition={transition}
+      initial={{ opacity: 0, y: direction * OFFSET }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
       className="h-full"
     >
       {children}

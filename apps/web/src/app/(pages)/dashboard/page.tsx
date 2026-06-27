@@ -2,7 +2,6 @@
 
 import { useSession } from 'next-auth/react'
 import { TrendingUp, BarChart2, ShieldCheck, DollarSign, ArrowRight, Zap } from 'lucide-react'
-import { AppShell } from '@/widgets/app-shell/ui/AppShell'
 import { ResultBadge } from '@/shared/ui/ResultBadge'
 import { mockStats, mockBets, mockBookmakers } from '@/shared/lib/mock-data'
 
@@ -53,7 +52,7 @@ export default function DashboardPage() {
   const firstName = session?.user?.name?.split(' ')[0] ?? 'there'
 
   return (
-    <AppShell placeholder="Search events, bookies, or bet types...">
+    <>
       {/* Welcome */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Welcome back, {firstName}</h1>
@@ -184,6 +183,6 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
-    </AppShell>
+    </>
   )
 }

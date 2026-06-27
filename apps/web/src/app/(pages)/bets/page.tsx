@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { BarChart2, CheckCircle2, XCircle, Clock, Filter } from 'lucide-react'
-import { AppShell } from '@/widgets/app-shell/ui/AppShell'
 import { ResultBadge } from '@/shared/ui/ResultBadge'
 import { mockBets } from '@/shared/lib/mock-data'
 import { BetResult } from '@/shared/lib/types'
@@ -25,7 +24,7 @@ export default function BetsPage() {
   })
 
   return (
-    <AppShell placeholder="Search bets...">
+    <>
       {/* Page header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
@@ -153,6 +152,6 @@ export default function BetsPage() {
           </table>
         </div>
       </div>
-    </AppShell>
+    </>
   )
 }
