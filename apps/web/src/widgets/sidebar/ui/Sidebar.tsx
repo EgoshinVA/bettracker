@@ -30,9 +30,6 @@ export function Sidebar({ onAddBet }: SidebarProps) {
           </div>
           <div>
             <p className="text-base font-bold leading-none text-slate-900">BetTracker</p>
-            <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-slate-400">
-              Professional Analytics
-            </p>
           </div>
         </div>
       </div>
@@ -60,7 +57,7 @@ export function Sidebar({ onAddBet }: SidebarProps) {
       </nav>
 
       {/* Bottom */}
-      <div className="p-4 space-y-4">
+      <div className="p-4">
         <button
           onClick={onAddBet}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
@@ -68,17 +65,6 @@ export function Sidebar({ onAddBet }: SidebarProps) {
           <Plus className="h-4 w-4" />
           Add Bet
         </button>
-
-        {/* User */}
-        <div className="flex items-center gap-3 rounded-lg p-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
-            A
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900">Alex Rivers</p>
-            <p className="text-xs text-slate-400">Pro Plan</p>
-          </div>
-        </div>
       </div>
     </aside>
   )

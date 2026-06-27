@@ -1,20 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 import { FormSkeleton } from '@/shared/ui/FormSkeleton'
 import {
-  getCurrencies,
-  getTimezones,
-  getLanguages,
-  getUserPreferences,
-  updateCurrency,
-  updateTimezone,
-  updateLanguage,
-  type Currency,
-  type Timezone,
-  type Language,
+  useGetCurrenciesQuery,
+  useGetTimezonesQuery,
+  useGetLanguagesQuery,
+  useGetUserPreferencesQuery,
+  useUpdateCurrencyMutation,
+  useUpdateTimezoneMutation,
+  useUpdateLanguageMutation,
 } from '../api/preferences.api'
 
 const selectClass =
@@ -23,76 +18,41 @@ const selectClass =
 const labelClass = 'mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400'
 
 export function AppPreferencesForm() {
-  const { data: session } = useSession()
+  const { data: currencies = [], isLoading: loadingCurrencies } = useGetCurrenciesQuery()
+  const { data: timezones = [], isLoading: loadingTimezones } = useGetTimezonesQuery()
+  const { data: languages = [], isLoading: loadingLanguages } = useGetLanguagesQuery()
+  const { data: prefs, isLoading: loadingPrefs } = useGetUserPreferencesQuery()
 
-  const [currencies, setCurrencies] = useState<Currency[]>([])
-  const [timezones, setTimezones] = useState<Timezone[]>([])
-  const [languages, setLanguages] = useState<Language[]>([])
+  const [updateCurrency, { isLoading: savingCurrency }] = useUpdateCurrencyMutation()
+  const [updateTimezone, { isLoading: savingTimezone }] = useUpdateTimezoneMutation()
+  const [updateLanguage, { isLoading: savingLanguage }] = useUpdateLanguageMutation()
 
-  const [currencyId, setCurrencyId] = useState('')
-  const [timezoneId, setTimezoneId] = useState('')
-  const [languageId, setLanguageId] = useState('')
-
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState<'currency' | 'timezone' | 'language' | null>(null)
-
-  useEffect(() => {
-    if (!session?.accessToken) return
-
-    Promise.all([
-      getCurrencies(),
-      getTimezones(),
-      getLanguages(),
-      getUserPreferences(session.accessToken),
-    ])
-      .then(([cur, tz, lang, prefs]) => {
-        setCurrencies(cur)
-        setTimezones(tz)
-        setLanguages(lang)
-        setCurrencyId(prefs.currencyId ?? '')
-        setTimezoneId(prefs.timezoneId ?? '')
-        setLanguageId(prefs.languageId ?? '')
-      })
-      .catch(() => toast.error('Failed to load preferences'))
-      .finally(() => setLoading(false))
-  }, [session?.accessToken])
+  const loading = loadingCurrencies || loadingTimezones || loadingLanguages || loadingPrefs
 
   const handleCurrency = async (id: string) => {
-    setCurrencyId(id)
-    setSaving('currency')
     try {
-      await updateCurrency(id, session!.accessToken)
+      await updateCurrency(id).unwrap()
       toast.success('Currency updated')
     } catch {
       toast.error('Failed to update currency')
-    } finally {
-      setSaving(null)
     }
   }
 
   const handleTimezone = async (id: string) => {
-    setTimezoneId(id)
-    setSaving('timezone')
     try {
-      await updateTimezone(id, session!.accessToken)
+      await updateTimezone(id).unwrap()
       toast.success('Timezone updated')
     } catch {
       toast.error('Failed to update timezone')
-    } finally {
-      setSaving(null)
     }
   }
 
   const handleLanguage = async (id: string) => {
-    setLanguageId(id)
-    setSaving('language')
     try {
-      await updateLanguage(id, session!.accessToken)
+      await updateLanguage(id).unwrap()
       toast.success('Language updated')
     } catch {
       toast.error('Failed to update language')
-    } finally {
-      setSaving(null)
     }
   }
 
@@ -103,9 +63,9 @@ export function AppPreferencesForm() {
       <div>
         <label className={labelClass}>Currency</label>
         <select
-          value={currencyId}
+          value={prefs?.currencyId ?? ''}
           onChange={(e) => handleCurrency(e.target.value)}
-          disabled={saving === 'currency'}
+          disabled={savingCurrency}
           className={selectClass}
         >
           {currencies.map((c) => (
@@ -119,9 +79,9 @@ export function AppPreferencesForm() {
       <div>
         <label className={labelClass}>Timezone</label>
         <select
-          value={timezoneId}
+          value={prefs?.timezoneId ?? ''}
           onChange={(e) => handleTimezone(e.target.value)}
-          disabled={saving === 'timezone'}
+          disabled={savingTimezone}
           className={selectClass}
         >
           {timezones.map((tz) => (
@@ -135,9 +95,9 @@ export function AppPreferencesForm() {
       <div>
         <label className={labelClass}>Language</label>
         <select
-          value={languageId}
+          value={prefs?.languageId ?? ''}
           onChange={(e) => handleLanguage(e.target.value)}
-          disabled={saving === 'language'}
+          disabled={savingLanguage}
           className={selectClass}
         >
           {languages.map((l) => (

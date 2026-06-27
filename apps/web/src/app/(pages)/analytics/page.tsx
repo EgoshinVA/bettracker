@@ -48,7 +48,7 @@ function MetricCard({
 
 export default function AnalyticsPage() {
   return (
-    <AppShell headerProps={{ placeholder: 'Search analytics...', showAvatar: true }}>
+    <AppShell placeholder="Search analytics...">
       {/* Page header */}
       <div className="mb-6 flex items-start justify-between">
         <div>

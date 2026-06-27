@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { BarChart2, TrendingUp, Zap, Globe, Smartphone, ArrowRight } from 'lucide-react'
-import { AuthModal } from '@/features/auth'
 
 const features = [
   {
@@ -40,7 +39,7 @@ const features = [
 ]
 
 export default function LandingPage() {
-  const [authOpen, setAuthOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <div className="min-h-screen bg-white">
@@ -64,7 +63,7 @@ export default function LandingPage() {
           ))}
         </div>
         <button
-          onClick={() => setAuthOpen(true)}
+          onClick={() => router.push('/login')}
           className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
         >
           Start tracking free
@@ -91,7 +90,7 @@ export default function LandingPage() {
             </p>
             <div className="mt-8 flex items-center gap-4">
               <button
-                onClick={() => setAuthOpen(true)}
+                onClick={() => router.push('/login')}
                 className="rounded-lg bg-violet-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
               >
                 Start tracking free
@@ -206,7 +205,7 @@ export default function LandingPage() {
         </p>
         <div className="mt-8 flex items-center justify-center gap-4">
           <button
-            onClick={() => setAuthOpen(true)}
+            onClick={() => router.push('/login')}
             className="rounded-lg bg-violet-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
           >
             Create Free Account
@@ -270,7 +269,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   )
 }

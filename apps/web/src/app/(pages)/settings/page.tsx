@@ -20,7 +20,7 @@ const proFeatures = [
 
 export default function SettingsPage() {
   return (
-    <AppShell headerProps={{ placeholder: 'Search analytics...' }}>
+    <AppShell placeholder="Search settings...">
       <div className="grid h-full grid-cols-3 gap-6">
           {/* Left column */}
           <div className="col-span-2 min-h-0 overflow-y-auto">

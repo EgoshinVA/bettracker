@@ -1,5 +1,6 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
 import { TrendingUp, BarChart2, ShieldCheck, DollarSign, ArrowRight, Zap } from 'lucide-react'
 import { AppShell } from '@/widgets/app-shell/ui/AppShell'
 import { ResultBadge } from '@/shared/ui/ResultBadge'
@@ -48,17 +49,14 @@ function StatCard({
 }
 
 export default function DashboardPage() {
+  const { data: session } = useSession()
+  const firstName = session?.user?.name?.split(' ')[0] ?? 'there'
+
   return (
-    <AppShell
-      headerProps={{
-        placeholder: 'Search events, bookies, or bet types...',
-        showBalance: true,
-        balance: '$12,840.50',
-      }}
-    >
+    <AppShell placeholder="Search events, bookies, or bet types...">
       {/* Welcome */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Welcome back, Alex</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Welcome back, {firstName}</h1>
         <p className="mt-1 text-sm text-slate-500">
           Your betting portfolio is up{' '}
           <span className="font-semibold text-green-500">+{mockStats.roi}%</span> this month. Keep it up!

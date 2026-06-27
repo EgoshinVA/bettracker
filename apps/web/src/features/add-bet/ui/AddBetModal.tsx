@@ -26,7 +26,6 @@ export function AddBetModal({ isOpen, onClose }: AddBetModalProps) {
   const { register, handleSubmit, reset } = useForm<AddBetFormData>()
 
   const onSubmit = (data: AddBetFormData) => {
-    console.log('New bet:', data)
     reset()
     onClose()
     toast.success(`Bet added — ${data.sport} · ${data.league || data.betType}`)

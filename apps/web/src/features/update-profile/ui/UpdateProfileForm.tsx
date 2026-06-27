@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
-import { updateProfileApi } from '../api/update-profile.api'
+import { useUpdateProfileMutation } from '../api/update-profile.api'
 import { FormSkeleton } from '@/shared/ui/FormSkeleton'
 
 const schema = z.object({
@@ -15,14 +15,24 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === 'object' && 'data' in err) {
+    const msg = (err as { data?: { message?: string | string[] } }).data?.message
+    if (Array.isArray(msg)) return msg[0]
+    if (typeof msg === 'string') return msg
+  }
+  return fallback
+}
+
 export function UpdateProfileForm() {
   const { data: session, update, status } = useSession()
+  const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation()
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { errors, isDirty },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     values: {
@@ -33,12 +43,12 @@ export function UpdateProfileForm() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await updateProfileApi(data, session!.accessToken)
+      await updateProfile(data).unwrap()
       await update({ user: { name: data.name, email: data.email } })
       reset(data)
       toast.success('Profile updated')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update profile')
+      toast.error(extractErrorMessage(err, 'Failed to update profile'))
     }
   }
 
@@ -72,10 +82,10 @@ export function UpdateProfileForm() {
       <div className="mt-4 flex justify-end">
         <button
           type="submit"
-          disabled={!isDirty || isSubmitting}
+          disabled={!isDirty || isSaving}
           className="rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting ? 'Saving…' : 'Save Changes'}
+          {isSaving ? 'Saving…' : 'Save Changes'}
         </button>
       </div>
     </form>

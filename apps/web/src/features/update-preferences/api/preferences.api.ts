@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+import { baseApi } from '@/shared/api/baseApi'
 
 export interface Currency {
   id: string
@@ -31,41 +31,42 @@ export interface UserPreferences {
   language: Language | null
 }
 
-async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}/api${path}`)
-  if (!res.ok) throw new Error(`Failed to fetch ${path}`)
-  return res.json()
-}
+export const preferencesApi = baseApi.injectEndpoints({
+  endpoints: (build) => ({
+    getCurrencies: build.query<Currency[], void>({
+      query: () => '/preferences/currencies',
+    }),
+    getTimezones: build.query<Timezone[], void>({
+      query: () => '/preferences/timezones',
+    }),
+    getLanguages: build.query<Language[], void>({
+      query: () => '/preferences/languages',
+    }),
+    getUserPreferences: build.query<UserPreferences, void>({
+      query: () => '/preferences/me',
+      providesTags: ['UserPreferences'],
+    }),
+    updateCurrency: build.mutation<UserPreferences, string>({
+      query: (currencyId) => ({ url: '/preferences/me/currency', method: 'PATCH', body: { currencyId } }),
+      invalidatesTags: ['UserPreferences'],
+    }),
+    updateTimezone: build.mutation<UserPreferences, string>({
+      query: (timezoneId) => ({ url: '/preferences/me/timezone', method: 'PATCH', body: { timezoneId } }),
+      invalidatesTags: ['UserPreferences'],
+    }),
+    updateLanguage: build.mutation<UserPreferences, string>({
+      query: (languageId) => ({ url: '/preferences/me/language', method: 'PATCH', body: { languageId } }),
+      invalidatesTags: ['UserPreferences'],
+    }),
+  }),
+})
 
-async function patch<T>(path: string, body: object, accessToken: string): Promise<T> {
-  const res = await fetch(`${API_URL}/api${path}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.message ?? 'Request failed')
-  }
-  return res.json()
-}
-
-export const getCurrencies = (): Promise<Currency[]> => get('/preferences/currencies')
-export const getTimezones = (): Promise<Timezone[]> => get('/preferences/timezones')
-export const getLanguages = (): Promise<Language[]> => get('/preferences/languages')
-export const getUserPreferences = (token: string): Promise<UserPreferences> =>
-  fetch(`${API_URL}/api/preferences/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  }).then((r) => r.json())
-
-export const updateCurrency = (currencyId: string, token: string) =>
-  patch('/preferences/me/currency', { currencyId }, token)
-
-export const updateTimezone = (timezoneId: string, token: string) =>
-  patch('/preferences/me/timezone', { timezoneId }, token)
-
-export const updateLanguage = (languageId: string, token: string) =>
-  patch('/preferences/me/language', { languageId }, token)
+export const {
+  useGetCurrenciesQuery,
+  useGetTimezonesQuery,
+  useGetLanguagesQuery,
+  useGetUserPreferencesQuery,
+  useUpdateCurrencyMutation,
+  useUpdateTimezoneMutation,
+  useUpdateLanguageMutation,
+} = preferencesApi

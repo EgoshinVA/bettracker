@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { SessionProvider } from '@/shared/ui/providers/SessionProvider'
+import { ReduxProvider } from '@/shared/ui/providers/ReduxProvider'
 import { AppToaster } from '@/shared/ui/Toaster'
 
 export const metadata: Metadata = {
@@ -12,7 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <ReduxProvider>{children}</ReduxProvider>
+        </SessionProvider>
         <AppToaster />
       </body>
     </html>
