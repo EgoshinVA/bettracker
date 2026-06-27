@@ -1,0 +1,160 @@
+stages:
+  - install
+  - lint
+  - test
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "20"
+  DOCKER_DRIVER: overlay2
+
+# Cache node_modules across jobs
+.node_cache: &node_cache
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+      - apps/web/node_modules/
+      - apps/api/node_modules/
+
+# ─── Install ───────────────────────────────────────────────────────────────────
+install:
+  stage: install
+  image: node:20-alpine
+  <<: *node_cache
+  script:
+    - npm ci
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# ─── Lint ──────────────────────────────────────────────────────────────────────
+lint:web:
+  stage: lint
+  image: node:20-alpine
+  <<: *node_cache
+  script:
+    - npm run lint --workspace=@bettracker/web
+  needs: [install]
+
+lint:api:
+  stage: lint
+  image: node:20-alpine
+  <<: *node_cache
+  script:
+    - npm run lint --workspace=@bettracker/api
+  needs: [install]
+
+# ─── Test ──────────────────────────────────────────────────────────────────────
+test:web:
+  stage: test
+  image: node:20-alpine
+  <<: *node_cache
+  script:
+    - npm run test --workspace=@bettracker/web -- --coverage
+  coverage: '/Lines\s*:\s*(\d+\.?\d*)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: apps/web/coverage/cobertura-coverage.xml
+  needs: [install]
+
+test:api:
+  stage: test
+  image: node:20-alpine
+  <<: *node_cache
+  services:
+    - postgres:15-alpine
+  variables:
+    POSTGRES_DB: bettracker_test
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bettracker_test
+  script:
+    - npm run test --workspace=@bettracker/api -- --coverage
+  needs: [install]
+
+# ─── Build ─────────────────────────────────────────────────────────────────────
+build:web:
+  stage: build
+  image: node:20-alpine
+  <<: *node_cache
+  script:
+    - npm run build --workspace=@bettracker/web
+  artifacts:
+    paths:
+      - apps/web/.next/
+    expire_in: 1 hour
+  needs: [lint:web, test:web]
+  only:
+    - main
+
+build:api:
+  stage: build
+  image: node:20-alpine
+  <<: *node_cache
+  script:
+    - npm run build --workspace=@bettracker/api
+  artifacts:
+    paths:
+      - apps/api/dist/
+    expire_in: 1 hour
+  needs: [lint:api, test:api]
+  only:
+    - main
+
+# ─── Docker images ─────────────────────────────────────────────────────────────
+docker:web:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHORT_SHA apps/web
+    - docker push $CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHORT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/web:latest
+    - docker push $CI_REGISTRY_IMAGE/web:latest
+  needs: [build:web]
+  only:
+    - main
+
+docker:api:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHORT_SHA apps/api
+    - docker push $CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHORT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/api:latest
+    - docker push $CI_REGISTRY_IMAGE/api:latest
+  needs: [build:api]
+  only:
+    - main
+
+# ─── Deploy ────────────────────────────────────────────────────────────────────
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$DEPLOY_SSH_KEY" | ssh-add -
+  script:
+    - ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "
+        cd /opt/bettracker &&
+        docker compose pull &&
+        docker compose up -d --no-deps web api &&
+        docker image prune -f
+      "
+  needs: [docker:web, docker:api]
+  only:
+    - main
+  environment:
+    name: production
+    url: https://bettracker.app
