@@ -1,7 +1,9 @@
 import type { AuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+// API_INTERNAL_URL is for server-side calls inside Docker (http://api:3001).
+// Falls back to NEXT_PUBLIC_API_URL for local dev.
+const API_URL = process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
 // Backend JWT is 15 min; refresh 1 min early to avoid edge-case expiry
 const ACCESS_TOKEN_TTL_MS = 14 * 60 * 1000
