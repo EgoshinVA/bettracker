@@ -25,12 +25,10 @@ services:
     restart: unless-stopped
     ports:
       - '3001:3001'
+    env_file:
+      - apps/api/.env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/bettracker
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       LOKI_URL: http://loki:3100
       PORT: 3001
       NODE_ENV: production
@@ -51,9 +49,10 @@ services:
     restart: unless-stopped
     ports:
       - '3000:3000'
+    env_file:
+      - apps/web/.env.local
     environment:
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
     depends_on:

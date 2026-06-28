@@ -10,7 +10,7 @@ RUN npm ci
 COPY packages/shared packages/shared
 COPY apps/api apps/api
 
-RUN npm run build -w @bettracker/api
+RUN (cd packages/shared && npx tsc) && (cd apps/api && npx nest build)
 
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -18,12 +18,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY package.json package-lock.json ./
-COPY packages/shared/ packages/shared/
+COPY packages/shared/package.json packages/shared/
 COPY apps/api/package.json apps/api/
 
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/apps/api/dist apps/api/dist
+COPY --from=builder /app/packages/shared/dist packages/shared/dist
 
 EXPOSE 3001
 
