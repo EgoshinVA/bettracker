@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TrendingUp, TrendingDown, DollarSign, BarChart2, Plus } from 'lucide-react'
 import { useGetBookmakerStatsQuery } from '@/entities/bookmaker/api/bookmakers.api'
+import { AddBookmakerModal } from '@/features/add-bookmaker'
 
 function RoiBadge({ roi }: { roi: number }) {
   const positive = roi >= 0
@@ -20,6 +22,7 @@ function RoiBadge({ roi }: { roi: number }) {
 
 export default function BookmakersPage() {
   const { t } = useTranslation()
+  const [isAddOpen, setIsAddOpen] = useState(false)
   const { data: stats = [], isLoading } = useGetBookmakerStatsQuery()
 
   const totalVolume = stats.reduce((sum, s) => sum + s.volume, 0)
@@ -41,13 +44,17 @@ export default function BookmakersPage() {
 
   return (
     <>
+      <AddBookmakerModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
       {/* Page header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{t('bookmakers.title')}</h1>
           <p className="mt-1 text-sm text-slate-500">{t('bookmakers.subtitle')}</p>
         </div>
-        <button className="flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700">
+        <button
+          onClick={() => setIsAddOpen(true)}
+          className="flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+        >
           <Plus className="h-4 w-4" />
           {t('bookmakers.addBookmaker')}
         </button>

@@ -67,8 +67,9 @@ export class BookmakersService {
       const settled = bk.bets.filter((b) => b.result !== BetResult.PENDING)
       const won = settled.filter((b) => b.result === BetResult.WON)
       const volume = bk.bets.reduce((s, b) => s + Number(b.stake), 0)
+      const settledVolume = settled.reduce((s, b) => s + Number(b.stake), 0)
       const profit = settled.reduce((s, b) => s + Number(b.profit ?? 0), 0)
-      const roi = volume ? Math.round((profit / volume) * 100 * 10) / 10 : 0
+      const roi = settledVolume ? Math.round((profit / settledVolume) * 100 * 10) / 10 : 0
 
       return {
         bookmaker: bk,

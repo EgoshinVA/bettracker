@@ -153,7 +153,7 @@ describe('BookmakersService', () => {
       expect(result).toEqual([])
     })
 
-    it('should compute volume, roi, winRate per bookmaker', async () => {
+    it('should compute volume, roi, winRate per bookmaker from settled bets', async () => {
       const wonBet = mockBet({ result: BetResult.WON, stake: 100, odds: 2.0, profit: 100 })
       const lostBet = mockBet({ id: 'bet-2', result: BetResult.LOST, stake: 100, odds: 1.5, profit: -100 })
       const bkWithBets = { ...mockBookmaker, bets: [wonBet, lostBet] }
@@ -169,6 +169,36 @@ describe('BookmakersService', () => {
       expect(result[0].volumePct).toBe(100)
     })
 
+    it('should calculate ROI only on settled bet stakes, excluding pending', async () => {
+      // 1 won bet + 1 pending — ROI must be based on settled stake only
+      const wonBet = mockBet({ stake: 100, result: BetResult.WON, profit: 100 })
+      const pendingBet = mockBet({ id: 'bet-2', stake: 100, result: BetResult.PENDING, profit: null })
+      const bkWithBets = { ...mockBookmaker, bets: [wonBet, pendingBet] }
+      mockRepository.find.mockResolvedValue([bkWithBets])
+
+      const result = await service.getStats('user-1')
+
+      // volume = total wagered (display purposes, includes pending)
+      expect(result[0].volume).toBe(200)
+      // ROI = profit / settledStake = 100 / 100 = 100%, NOT 50%
+      expect(result[0].roi).toBe(100)
+      // winRate counts settled only: 1/1 = 100%
+      expect(result[0].winRate).toBe(100)
+    })
+
+    it('should return 0 ROI and 0 winRate when all bets are pending', async () => {
+      const pendingBet = mockBet({ stake: 200, result: BetResult.PENDING, profit: null })
+      const bkWithBets = { ...mockBookmaker, bets: [pendingBet] }
+      mockRepository.find.mockResolvedValue([bkWithBets])
+
+      const result = await service.getStats('user-1')
+
+      expect(result[0].roi).toBe(0)
+      expect(result[0].winRate).toBe(0)
+      expect(result[0].volume).toBe(200)
+      expect(result[0].totalBets).toBe(1)
+    })
+
     it('should calculate volumePct relative to total across bookmakers', async () => {
       const bk1 = { ...mockBookmaker, id: 'bk-1', bets: [mockBet({ stake: 300, result: BetResult.WON, profit: 300 })] }
       const bk2 = { ...mockBookmaker, id: 'bk-2', bets: [mockBet({ stake: 100, result: BetResult.WON, profit: 100 })] }
@@ -178,6 +208,22 @@ describe('BookmakersService', () => {
 
       expect(result[0].volumePct).toBe(75)
       expect(result[1].volumePct).toBe(25)
+    })
+
+    it('should include pending bets in totalBets count but not in winRate', async () => {
+      const wonBet = mockBet({ stake: 50, result: BetResult.WON, profit: 50 })
+      const lostBet = mockBet({ id: 'bet-2', stake: 50, result: BetResult.LOST, profit: -50 })
+      const pendingBet = mockBet({ id: 'bet-3', stake: 50, result: BetResult.PENDING, profit: null })
+      const bkWithBets = { ...mockBookmaker, bets: [wonBet, lostBet, pendingBet] }
+      mockRepository.find.mockResolvedValue([bkWithBets])
+
+      const result = await service.getStats('user-1')
+
+      expect(result[0].totalBets).toBe(3)
+      // winRate only on settled (2 settled: 1 won) = 50%
+      expect(result[0].winRate).toBe(50)
+      // ROI on settled stake 100: profit 0 = 0%
+      expect(result[0].roi).toBe(0)
     })
   })
 })
