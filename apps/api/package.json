@@ -7,7 +7,11 @@
     "build": "nest build",
     "start": "node dist/main",
     "test": "jest --passWithNoTests",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "db:migrate": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
+    "db:migrate:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
+    "db:migrate:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
+    "db:migrate:create": "typeorm-ts-node-commonjs migration:create"
   },
   "dependencies": {
     "@bettracker/shared": "*",
@@ -18,17 +22,23 @@
     "@nestjs/passport": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.0.0",
+    "@nestjs/terminus": "^10.0.0",
+    "@nestjs/throttler": "^5.0.0",
     "@nestjs/typeorm": "^10.0.0",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.0",
     "class-validator": "^0.14.0",
+    "helmet": "^7.0.0",
+    "nest-winston": "^1.9.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "pg": "^8.11.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
-    "typeorm": "^0.3.0"
+    "typeorm": "^0.3.0",
+    "winston": "^3.11.0",
+    "winston-loki": "^6.1.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -40,6 +50,7 @@
     "jest": "^29.0.0",
     "ts-jest": "^29.0.0",
     "ts-loader": "^9.6.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.1.0"
   }
 }

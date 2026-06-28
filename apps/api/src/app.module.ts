@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { ThrottlerModule } from '@nestjs/throttler'
 import { BetsModule } from './bets/bets.module'
 import { AuthModule } from './auth/auth.module'
 import { PreferencesModule } from './preferences/preferences.module'
@@ -8,6 +9,7 @@ import { BookmakersModule } from './bookmakers/bookmakers.module'
 import { AnalyticsModule } from './analytics/analytics.module'
 import { SportsModule } from './sports/sports.module'
 import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module'
+import { HealthModule } from './health/health.module'
 import { User } from './users/entities/user.entity'
 import { Bet } from './bets/entities/bet.entity'
 import { RefreshToken } from './auth/entities/refresh-token.entity'
@@ -28,10 +30,13 @@ import { ExchangeRate } from './exchange-rates/entities/exchange-rate.entity'
         type: 'postgres',
         url: config.get<string>('DATABASE_URL'),
         entities: [User, Bet, RefreshToken, Currency, Timezone, Language, UserPreferences, Bookmaker, Sport, ExchangeRate],
+        migrations: ['dist/database/migrations/*.js'],
+        migrationsRun: config.get<string>('NODE_ENV') === 'production',
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: config.get<string>('NODE_ENV') === 'development',
       }),
     }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     BetsModule,
     AuthModule,
     PreferencesModule,
@@ -39,6 +44,7 @@ import { ExchangeRate } from './exchange-rates/entities/exchange-rate.entity'
     AnalyticsModule,
     SportsModule,
     ExchangeRatesModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
