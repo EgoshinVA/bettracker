@@ -1,45 +1,80 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { BarChart2, TrendingUp, Zap, Globe, Smartphone, ArrowRight } from 'lucide-react'
-
-const features = [
-  {
-    icon: TrendingUp,
-    title: 'Real-time ROI',
-    body: 'Every bet tracked instantly. Watch your performance metrics evolve as games conclude with zero manual entry.',
-    tags: ['100% Accuracy', 'Zero Latency'],
-    dark: false,
-  },
-  {
-    icon: Globe,
-    title: 'Bookmaker Insights',
-    body: 'Compare margins and track your performance across 40+ global sportsbooks.',
-    tags: ['FanDuel', 'DraftKings', 'Bet365'],
-    dark: true,
-  },
-  {
-    icon: BarChart2,
-    title: 'Performance Analytics',
-    body: 'Drill down into sports, leagues, and even specific bet types to find your edge.',
-    dark: true,
-  },
-  {
-    icon: Zap,
-    title: 'Automated Sync',
-    body: 'Connect your accounts once. Never manually log a bet again.',
-    dark: false,
-  },
-  {
-    icon: Smartphone,
-    title: 'Always with you',
-    body: 'Native iOS and Android apps for tracking on the go.',
-    dark: false,
-  },
-]
+import '@/shared/lib/i18n/config'
 
 export default function LandingPage() {
   const router = useRouter()
+  const { t } = useTranslation()
+
+  const features = [
+    {
+      icon: TrendingUp,
+      title: t('landing.features.realTimeRoiTitle'),
+      body: t('landing.features.realTimeRoiBody'),
+      tags: ['100% Accuracy', 'Zero Latency'],
+      dark: false,
+    },
+    {
+      icon: Globe,
+      title: t('landing.features.bookmakerInsightsTitle'),
+      body: t('landing.features.bookmakerInsightsBody'),
+      tags: ['FanDuel', 'DraftKings', 'Bet365'],
+      dark: true,
+    },
+    {
+      icon: BarChart2,
+      title: t('landing.features.performanceAnalyticsTitle'),
+      body: t('landing.features.performanceAnalyticsBody'),
+      dark: true,
+    },
+    {
+      icon: Zap,
+      title: t('landing.features.automatedSyncTitle'),
+      body: t('landing.features.automatedSyncBody'),
+      dark: false,
+    },
+    {
+      icon: Smartphone,
+      title: t('landing.features.alwaysWithYouTitle'),
+      body: t('landing.features.alwaysWithYouBody'),
+      dark: false,
+    },
+  ]
+
+  const footerColumns = [
+    {
+      title: t('landing.footer.productTitle'),
+      links: [
+        t('landing.footer.features'),
+        t('landing.footer.integrations'),
+        t('landing.footer.apiAccess'),
+        t('landing.footer.pricing'),
+      ],
+    },
+    {
+      title: t('landing.footer.resourcesTitle'),
+      links: [
+        t('landing.footer.helpCenter'),
+        t('landing.footer.bettingGuide'),
+        t('landing.footer.roiCalculator'),
+      ],
+    },
+    {
+      title: t('landing.footer.companyTitle'),
+      links: [
+        t('landing.footer.aboutUs'),
+        t('landing.footer.careers'),
+        t('landing.footer.contact'),
+      ],
+    },
+    {
+      title: t('landing.footer.legalTitle'),
+      links: [t('landing.footer.privacy'), t('landing.footer.terms')],
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-white">
@@ -52,7 +87,11 @@ export default function LandingPage() {
           <span className="text-base font-bold text-slate-900">BetTracker</span>
         </div>
         <div className="flex items-center gap-8">
-          {['Features', 'Analytics', 'Pricing'].map((item) => (
+          {[
+            t('landing.nav.features'),
+            t('landing.nav.analytics'),
+            t('landing.nav.pricing'),
+          ].map((item) => (
             <a
               key={item}
               href="#"
@@ -66,7 +105,7 @@ export default function LandingPage() {
           onClick={() => router.push('/login')}
           className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
         >
-          Start tracking free
+          {t('landing.nav.startTracking')}
         </button>
       </nav>
 
@@ -77,26 +116,25 @@ export default function LandingPage() {
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-violet-600" />
               <span className="text-xs font-semibold text-violet-700">
-                Real-time Bookmaker Integration is Live
+                {t('landing.hero.badge')}
               </span>
             </div>
             <h1 className="text-5xl font-extrabold leading-tight text-slate-900">
-              Elevate Your{' '}
-              <span className="text-violet-600">Betting Strategy</span>
+              {t('landing.hero.title')}{' '}
+              <span className="text-violet-600">{t('landing.hero.titleHighlight')}</span>
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-slate-500">
-              Professional-grade analytics for serious sports bettors. Transform your fragmented data
-              into actionable insights with our automated tracking suite.
+              {t('landing.hero.subtitle')}
             </p>
             <div className="mt-8 flex items-center gap-4">
               <button
                 onClick={() => router.push('/login')}
                 className="rounded-lg bg-violet-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
               >
-                Start tracking free
+                {t('landing.hero.ctaStart')}
               </button>
               <button className="flex items-center gap-2 rounded-lg border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
-                View Demo <ArrowRight className="h-4 w-4" />
+                {t('landing.hero.ctaDemo')} <ArrowRight className="h-4 w-4" />
               </button>
             </div>
             <div className="mt-8 flex items-center gap-3">
@@ -110,7 +148,9 @@ export default function LandingPage() {
                 ))}
               </div>
               <p className="text-sm text-slate-500">
-                Joined by <span className="font-semibold text-slate-900">12,000+</span> serious bettors
+                {t('landing.hero.joinedBy')}{' '}
+                <span className="font-semibold text-slate-900">12,000+</span>{' '}
+                {t('landing.hero.seriousBettors')}
               </p>
             </div>
           </div>
@@ -127,11 +167,11 @@ export default function LandingPage() {
             </div>
             <div className="mb-6 grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-slate-400">Net Profit</p>
+                <p className="text-xs text-slate-400">{t('landing.hero.netProfit')}</p>
                 <p className="text-2xl font-bold text-violet-600">+$14,284.50</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">ROI</p>
+                <p className="text-xs text-slate-400">{t('landing.hero.roi')}</p>
                 <p className="text-2xl font-bold text-green-500">+12.4%</p>
               </div>
             </div>
@@ -156,11 +196,8 @@ export default function LandingPage() {
       {/* Features */}
       <section className="mx-auto max-w-6xl px-8 py-16">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-slate-900">Analytics for Every Move</h2>
-          <p className="mt-3 text-slate-500">
-            Precision engineering for your betting bankroll. We provide the tools usually reserved
-            for quantitative hedge funds.
-          </p>
+          <h2 className="text-3xl font-bold text-slate-900">{t('landing.features.sectionTitle')}</h2>
+          <p className="mt-3 text-slate-500">{t('landing.features.sectionSubtitle')}</p>
         </div>
         <div className="grid grid-cols-3 gap-4">
           {features.map(({ icon: Icon, title, body, tags, dark }) => (
@@ -179,14 +216,14 @@ export default function LandingPage() {
               </p>
               {tags && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {tags.map((t) => (
+                  {tags.map((tag) => (
                     <span
-                      key={t}
+                      key={tag}
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         dark ? 'bg-white/10 text-slate-300' : 'bg-violet-50 text-violet-700'
                       }`}
                     >
-                      {t}
+                      {tag}
                     </span>
                   ))}
                 </div>
@@ -198,26 +235,20 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-8 py-16 text-center">
-        <h2 className="text-4xl font-extrabold text-slate-900">Stop Guessing. Start Winning.</h2>
-        <p className="mx-auto mt-4 max-w-lg text-slate-500">
-          The top 5% of bettors use data to drive their decisions. Join the community and get the
-          clarity your bankroll deserves.
-        </p>
+        <h2 className="text-4xl font-extrabold text-slate-900">{t('landing.cta.title')}</h2>
+        <p className="mx-auto mt-4 max-w-lg text-slate-500">{t('landing.cta.subtitle')}</p>
         <div className="mt-8 flex items-center justify-center gap-4">
           <button
             onClick={() => router.push('/login')}
             className="rounded-lg bg-violet-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
           >
-            Create Free Account
+            {t('landing.cta.createAccount')}
           </button>
           <button className="rounded-lg border border-slate-200 px-8 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
-            Talk to Sales
+            {t('landing.cta.talkToSales')}
           </button>
         </div>
-        <p className="mt-6 text-sm italic text-slate-400">
-          &ldquo;BetTracker changed how I view my losses. I finally found the leak in my MLB
-          strategy.&rdquo; — Professional Bettor
-        </p>
+        <p className="mt-6 text-sm italic text-slate-400">{t('landing.cta.quote')}</p>
       </section>
 
       {/* Footer */}
@@ -231,17 +262,9 @@ export default function LandingPage() {
                 </div>
                 <span className="text-sm font-bold text-slate-900">BetTracker</span>
               </div>
-              <p className="text-xs leading-relaxed text-slate-400">
-                The analytical terminal for modern sports bettors. Precision, speed, and clarity for
-                every wager.
-              </p>
+              <p className="text-xs leading-relaxed text-slate-400">{t('landing.footer.tagline')}</p>
             </div>
-            {[
-              { title: 'Product', links: ['Features', 'Integrations', 'API Access', 'Pricing'] },
-              { title: 'Resources', links: ['Help Center', 'Betting Guide', 'ROI Calculator'] },
-              { title: 'Company', links: ['About Us', 'Careers', 'Contact'] },
-              { title: 'Legal', links: ['Privacy', 'Terms'] },
-            ].map(({ title, links }) => (
+            {footerColumns.map(({ title, links }) => (
               <div key={title}>
                 <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-900">
                   {title}
@@ -262,13 +285,10 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="border-t border-slate-100 pt-6">
-            <p className="text-center text-xs text-slate-400">
-              © 2024 BetTracker Inc. All rights reserved. Gamble responsibly.
-            </p>
+            <p className="text-center text-xs text-slate-400">{t('landing.footer.copyright')}</p>
           </div>
         </div>
       </footer>
-
     </div>
   )
 }

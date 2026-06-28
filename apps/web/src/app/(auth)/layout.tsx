@@ -1,25 +1,31 @@
-import type { ReactNode } from 'react'
-import { TrendingUp, BarChart3, ShieldCheck } from 'lucide-react'
+'use client'
 
-const FEATURES = [
-  {
-    icon: TrendingUp,
-    title: 'Real-time ROI tracking',
-    description: 'Monitor return on investment across every bet, league, and bookmaker.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Advanced analytics',
-    description: 'Deep performance insights broken down by sport, time, and bet type.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Secure & private',
-    description: 'Your data is encrypted end-to-end and never sold to third parties.',
-  },
-]
+import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { TrendingUp, BarChart3, ShieldCheck } from 'lucide-react'
+import '@/shared/lib/i18n/config'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
+
+  const features = [
+    {
+      icon: TrendingUp,
+      title: t('auth.layout.feature1Title'),
+      description: t('auth.layout.feature1Desc'),
+    },
+    {
+      icon: BarChart3,
+      title: t('auth.layout.feature2Title'),
+      description: t('auth.layout.feature2Desc'),
+    },
+    {
+      icon: ShieldCheck,
+      title: t('auth.layout.feature3Title'),
+      description: t('auth.layout.feature3Desc'),
+    },
+  ]
+
   return (
     <div className="flex min-h-screen">
       {/* ── Left branding panel (desktop only) ── */}
@@ -36,15 +42,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className="space-y-10">
           <div>
             <h2 className="text-3xl font-bold leading-tight text-white">
-              Make smarter bets with data-driven decisions
+              {t('auth.layout.headline')}
             </h2>
-            <p className="mt-3 text-base text-violet-200">
-              Professional-grade analytics trusted by thousands of serious bettors worldwide.
-            </p>
+            <p className="mt-3 text-base text-violet-200">{t('auth.layout.subheadline')}</p>
           </div>
 
           <ul className="space-y-6">
-            {FEATURES.map(({ icon: Icon, title, description }) => (
+            {features.map(({ icon: Icon, title, description }) => (
               <li key={title} className="flex gap-4">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10">
                   <Icon className="h-5 w-5 text-violet-200" />
@@ -61,10 +65,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         {/* Testimonial */}
         <figure className="rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
           <blockquote className="text-sm italic text-violet-200">
-            &ldquo;BetTracker completely changed how I approach sports betting. My ROI improved 34%
-            in the first three months.&rdquo;
+            {t('auth.layout.testimonial')}
           </blockquote>
-          <figcaption className="mt-3 text-xs text-violet-400">— James K., Professional bettor</figcaption>
+          <figcaption className="mt-3 text-xs text-violet-400">
+            {t('auth.layout.testimonialAuthor')}
+          </figcaption>
         </figure>
       </aside>
 

@@ -61,9 +61,9 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
         {/* Form */}
         <div className="p-6">
           {mode === 'login' ? (
-            <LoginForm onSuccess={onClose} onSwitchMode={() => setMode('register')} />
+            <LoginForm showHeader={false} onSuccess={onClose} onSwitchMode={() => setMode('register')} />
           ) : (
-            <RegisterForm onSuccess={onClose} onSwitchMode={() => setMode('login')} />
+            <RegisterForm showHeader={false} onSuccess={onClose} onSwitchMode={() => setMode('login')} />
           )}
         </div>
       </div>

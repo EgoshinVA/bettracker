@@ -32,18 +32,22 @@ export function AppShell({ children }: AppShellProps) {
     prevRef.current = pathname
   })
 
+  if (!isAuthenticated) {
+    return <>{children}</>
+  }
+
   return (
     <div className="flex h-screen bg-slate-50">
-      {isAuthenticated && <Sidebar onAddBet={() => setIsBetModalOpen(true)} />}
-      <div className={`flex flex-1 flex-col overflow-hidden${isAuthenticated ? ' ml-56' : ''}`}>
-        {isAuthenticated && <Header />}
+      <Sidebar onAddBet={() => setIsBetModalOpen(true)} />
+      <div className="flex flex-1 flex-col overflow-hidden ml-56">
+        <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-8">
           <PageTransition key={pathname} direction={direction}>
             {children}
           </PageTransition>
         </main>
       </div>
-      {isAuthenticated && <AddBetModal isOpen={isBetModalOpen} onClose={() => setIsBetModalOpen(false)} />}
+      <AddBetModal isOpen={isBetModalOpen} onClose={() => setIsBetModalOpen(false)} />
     </div>
   )
 }

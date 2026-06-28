@@ -4,6 +4,8 @@
   "compilerOptions": {
     "incremental": false,
     "rootDir": "src",
-    "paths": {}
+    "paths": {
+      "@bettracker/shared": ["../../packages/shared/dist/index"]
+    }
   }
 }
