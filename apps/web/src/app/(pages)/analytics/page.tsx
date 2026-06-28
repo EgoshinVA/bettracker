@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { TrendingUp, Target, Percent, Scale, AlertTriangle, Bell } from 'lucide-react'
 import {
   AreaChart,
@@ -77,6 +78,7 @@ function MetricCardSkeleton() {
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>('30D')
+  const { t } = useTranslation()
   const { data, isLoading } = useGetAnalyticsOverviewQuery(period)
   const { format, toDisplay } = useCurrency()
 
@@ -85,13 +87,34 @@ export default function AnalyticsPage() {
     color: getSportColor(s.sport, i),
   }))
 
+  const alerts = [
+    {
+      icon: TrendingUp,
+      color: 'text-green-600 bg-green-50',
+      title: t('analytics.alertOptimalTitle'),
+      body: t('analytics.alertOptimalBody'),
+    },
+    {
+      icon: Bell,
+      color: 'text-violet-600 bg-violet-50',
+      title: t('analytics.alertPortfolioTitle'),
+      body: t('analytics.alertPortfolioBody'),
+    },
+    {
+      icon: AlertTriangle,
+      color: 'text-red-600 bg-red-50',
+      title: t('analytics.alertRiskTitle'),
+      body: t('analytics.alertRiskBody'),
+    },
+  ]
+
   return (
     <>
       {/* Page header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Performance Analytics</h1>
-          <p className="mt-1 text-sm text-slate-500">Comprehensive breakdown of your wagering portfolio.</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('analytics.title')}</h1>
+          <p className="mt-1 text-sm text-slate-500">{t('analytics.subtitle')}</p>
         </div>
         <div className="flex rounded-lg border border-slate-200 bg-white p-1">
           {PERIODS.map((p) => (
@@ -117,32 +140,32 @@ export default function AnalyticsPage() {
         ) : (
           <>
             <MetricCard
-              label="Total Profit"
+              label={t('analytics.totalProfit')}
               value={format(data?.totalProfit ?? 0)}
               delta={`${(data?.totalProfit ?? 0) >= 0 ? '+' : ''}${data?.roi ?? 0}%`}
               positive={(data?.totalProfit ?? 0) >= 0}
               icon={TrendingUp}
             />
             <MetricCard
-              label="Win Rate"
+              label={t('analytics.winRate')}
               value={`${data?.winRate ?? 0}%`}
               delta={`${data?.winRate ?? 0}%`}
               positive={(data?.winRate ?? 0) >= 50}
-              note="of settled bets"
+              note={t('analytics.ofSettledBets')}
               icon={Target}
             />
             <MetricCard
-              label="ROI"
+              label={t('analytics.roi')}
               value={`${data?.roi ?? 0}%`}
               delta={`${(data?.roi ?? 0) >= 0 ? '+' : ''}${data?.roi ?? 0}%`}
               positive={(data?.roi ?? 0) >= 0}
-              note="on stake"
+              note={t('analytics.onStake')}
               icon={Percent}
             />
             <MetricCard
-              label="Avg. Odds"
+              label={t('analytics.avgOdds')}
               value={String(data?.avgOdds ?? '—')}
-              delta="Stable"
+              delta={t('analytics.stable')}
               positive
               icon={Scale}
             />
@@ -156,8 +179,8 @@ export default function AnalyticsPage() {
         <div className="col-span-2 rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">Profit over Time</h3>
-              <p className="text-xs text-slate-400">Net growth across all sport markets</p>
+              <h3 className="text-sm font-semibold text-slate-900">{t('analytics.profitOverTime')}</h3>
+              <p className="text-xs text-slate-400">{t('analytics.netGrowth')}</p>
             </div>
           </div>
           {isLoading ? (
@@ -182,7 +205,7 @@ export default function AnalyticsPage() {
                   contentStyle={{ borderRadius: '8px', border: '1px solid #f1f5f9', fontSize: 12 }}
                   formatter={(v: number, name: string) => [
                     format(v),
-                    name === 'profit' ? 'Cumulative Profit' : 'Avg per interval',
+                    name === 'profit' ? t('analytics.cumulativeProfit') : t('analytics.avgPerInterval'),
                   ]}
                 />
                 <Area type="monotone" dataKey="profit" stroke="#7c3aed" strokeWidth={2} fill="url(#profitGrad)" />
@@ -192,21 +215,21 @@ export default function AnalyticsPage() {
           )}
           <div className="mt-2 flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="h-2 w-4 rounded-full bg-violet-600" /> Profit Line
+              <span className="h-2 w-4 rounded-full bg-violet-600" /> {t('analytics.profitLine')}
             </span>
             <span className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="h-px w-4 border-t-2 border-dashed border-violet-300" /> Rolling Average
+              <span className="h-px w-4 border-t-2 border-dashed border-violet-300" /> {t('analytics.rollingAverage')}
             </span>
           </div>
         </div>
 
         {/* Sport Distribution */}
         <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h3 className="mb-1 text-sm font-semibold text-slate-900">Sport Distribution</h3>
+          <h3 className="mb-1 text-sm font-semibold text-slate-900">{t('analytics.sportDistribution')}</h3>
           {isLoading ? (
             <div className="mt-4 h-40 animate-pulse rounded-lg bg-slate-50" />
           ) : sportDistributionWithColors.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-400">No bets in this period.</p>
+            <p className="mt-4 text-sm text-slate-400">{t('analytics.noBetsInPeriod')}</p>
           ) : (
             <div className="flex flex-col items-center">
               <div className="relative">
@@ -226,7 +249,7 @@ export default function AnalyticsPage() {
                   </Pie>
                 </PieChart>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">Leader</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">{t('analytics.leader')}</p>
                   <p className="text-sm font-bold text-slate-900">
                     {sportDistributionWithColors[0]?.sport ?? '—'}
                   </p>
@@ -252,11 +275,11 @@ export default function AnalyticsPage() {
       <div className="mb-6 rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Bookmaker Yield Analysis</h3>
-            <p className="text-xs text-slate-400">Efficiency per platform provider</p>
+            <h3 className="text-sm font-semibold text-slate-900">{t('analytics.bookmakerYield')}</h3>
+            <p className="text-xs text-slate-400">{t('analytics.efficiency')}</p>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <span className="h-2 w-2 rounded-full bg-violet-600" /> Total Turnover
+            <span className="h-2 w-2 rounded-full bg-violet-600" /> {t('analytics.totalTurnover')}
           </div>
         </div>
         {isLoading ? (
@@ -269,7 +292,7 @@ export default function AnalyticsPage() {
             ))}
           </div>
         ) : (data?.bookmakerYield ?? []).length === 0 ? (
-          <p className="text-sm text-slate-400">No bookmaker data for this period.</p>
+          <p className="text-sm text-slate-400">{t('analytics.noBookmakerData')}</p>
         ) : (
           <div className="space-y-4">
             {(data?.bookmakerYield ?? []).map((bk) => {
@@ -300,28 +323,9 @@ export default function AnalyticsPage() {
 
       {/* Alerts */}
       <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-sm font-semibold text-slate-900">Critical Performance Alerts</h3>
+        <h3 className="mb-4 text-sm font-semibold text-slate-900">{t('analytics.alertsTitle')}</h3>
         <div className="grid grid-cols-3 gap-4">
-          {[
-            {
-              icon: TrendingUp,
-              color: 'text-green-600 bg-green-50',
-              title: 'Optimal Odds Match',
-              body: 'Pinnacle is currently offering 4.5% higher value on Tennis futures.',
-            },
-            {
-              icon: Bell,
-              color: 'text-violet-600 bg-violet-50',
-              title: 'Portfolio Rebalance',
-              body: 'NBA exposure exceeded 40%. Consider diversifying into Soccer markets.',
-            },
-            {
-              icon: AlertTriangle,
-              color: 'text-red-600 bg-red-50',
-              title: 'High Risk Exposure',
-              body: 'Upcoming NFL parlay has 85% stake concentration. Hedge suggested.',
-            },
-          ].map(({ icon: Icon, color, title, body }) => (
+          {alerts.map(({ icon: Icon, color, title, body }) => (
             <div key={title} className="rounded-lg border border-slate-100 p-4">
               <div className={`mb-2 inline-flex rounded-lg p-2 ${color}`}>
                 <Icon className="h-4 w-4" />

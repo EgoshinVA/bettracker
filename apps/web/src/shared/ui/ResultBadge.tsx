@@ -1,3 +1,6 @@
+'use client'
+
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/lib/cn'
 import type { BetResult } from '@/shared/lib/types'
 
@@ -12,6 +15,7 @@ interface ResultBadgeProps {
 }
 
 export function ResultBadge({ result }: ResultBadgeProps) {
+  const { t } = useTranslation()
   return (
     <span
       className={cn(
@@ -19,7 +23,7 @@ export function ResultBadge({ result }: ResultBadgeProps) {
         variants[result]
       )}
     >
-      {result}
+      {t(`result.${result}`)}
     </span>
   )
 }

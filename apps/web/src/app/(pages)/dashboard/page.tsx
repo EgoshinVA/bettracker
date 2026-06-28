@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { useTranslation } from 'react-i18next'
 import { TrendingUp, BarChart2, ShieldCheck, DollarSign, ArrowRight, Zap } from 'lucide-react'
 import { ResultBadge } from '@/shared/ui/ResultBadge'
 import { useGetBetStatsQuery, useGetBetsQuery } from '@/entities/bet/api/bets.api'
@@ -61,6 +62,7 @@ function StatCardSkeleton() {
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const { t } = useTranslation()
   const firstName = session?.user?.name?.split(' ')[0] ?? 'there'
 
   const { data: stats, isLoading: statsLoading } = useGetBetStatsQuery()
@@ -75,20 +77,24 @@ export default function DashboardPage() {
     <>
       {/* Welcome */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Welcome back, {firstName}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('dashboard.welcomeBack', { name: firstName })}</h1>
         <p className="mt-1 text-sm text-slate-500">
           {stats ? (
-            <>
-              Your betting portfolio is{' '}
-              {stats.roi >= 0 ? (
-                <>up <span className="font-semibold text-green-500">+{stats.roi}%</span></>
-              ) : (
-                <>down <span className="font-semibold text-red-500">{stats.roi}%</span></>
-              )}{' '}
-              this month. Keep it up!
-            </>
+            stats.roi >= 0 ? (
+              <>
+                {t('dashboard.portfolioUpPrefix')}{' '}
+                <span className="font-semibold text-green-500">+{stats.roi}%</span>{' '}
+                {t('dashboard.portfolioUpSuffix')}
+              </>
+            ) : (
+              <>
+                {t('dashboard.portfolioDownPrefix')}{' '}
+                <span className="font-semibold text-red-500">{stats.roi}%</span>{' '}
+                {t('dashboard.portfolioDownSuffix')}
+              </>
+            )
           ) : (
-            'Loading your portfolio...'
+            t('dashboard.loadingPortfolio')
           )}
         </p>
       </div>
@@ -100,25 +106,25 @@ export default function DashboardPage() {
         ) : (
           <>
             <StatCard
-              label="Return on Investment"
+              label={t('stats.roi')}
               value={`${stats?.roi ?? 0 >= 0 ? '+' : ''}${stats?.roi ?? 0}%`}
               delta={`${stats?.roiDelta ?? 0}%`}
               deltaPositive={(stats?.roiDelta ?? 0) >= 0}
               icon={TrendingUp}
             />
             <StatCard
-              label="Total Bets Placed"
+              label={t('stats.totalBets')}
               value={String(stats?.totalBets ?? 0)}
               icon={BarChart2}
             />
             <StatCard
-              label="Win Rate"
+              label={t('stats.winRate')}
               value={`${stats?.winRate ?? 0}%`}
-              badge="Top 5%"
+              badge={t('stats.top5')}
               icon={ShieldCheck}
             />
             <StatCard
-              label="Net Profit (Monthly)"
+              label={t('stats.netProfit')}
               value={format(stats?.netProfitMonthly ?? 0)}
               accentValue
               icon={DollarSign}
@@ -132,17 +138,17 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between border-b border-slate-50 px-6 py-4">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-slate-400" />
-            <h2 className="text-sm font-semibold text-slate-900">Recent Bets</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{t('dashboard.recentBets')}</h2>
           </div>
           <a href="/bets" className="flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700">
-            View all <ArrowRight className="h-3.5 w-3.5" />
+            {t('dashboard.viewAll')} <ArrowRight className="h-3.5 w-3.5" />
           </a>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-50">
-                {['Date', 'Event', 'Bet Type', 'Odds', 'Stake', 'Result'].map((h) => (
+                {[t('table.date'), t('table.event'), t('table.betType'), t('table.odds'), t('table.stake'), t('table.result')].map((h) => (
                   <th
                     key={h}
                     className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-slate-400"
@@ -166,14 +172,14 @@ export default function DashboardPage() {
               ) : recentBets.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400">
-                    No bets yet. Add your first bet to get started.
+                    {t('dashboard.noBetsYet')}
                   </td>
                 </tr>
               ) : (
                 recentBets.map((bet) => (
                   <tr key={bet.id} className="transition-colors hover:bg-slate-50/50">
                     <td className="px-6 py-4 text-slate-400">
-                      {new Date(bet.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(bet.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-medium text-slate-900">{bet.match}</p>
@@ -199,13 +205,12 @@ export default function DashboardPage() {
         <div className="col-span-2 rounded-xl bg-violet-600 p-6 text-white">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-lg font-bold">Unlock High-Yield Parlays</h3>
+              <h3 className="text-lg font-bold">{t('dashboard.unlockParlays')}</h3>
               <p className="mt-2 max-w-sm text-sm text-violet-200">
-                Our algorithm detected a value discrepancy in tonight's Champions League fixtures. Users
-                with Pro Plan are seeing 15% better returns on these specific set markets.
+                {t('dashboard.parlayCopy')}
               </p>
               <button className="mt-4 rounded-lg border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20">
-                Upgrade Now
+                {t('dashboard.upgradeNow')}
               </button>
             </div>
             <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/10">
@@ -216,7 +221,7 @@ export default function DashboardPage() {
 
         {/* Top Bookmakers */}
         <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-sm font-semibold text-slate-900">Top Bookmakers</h3>
+          <h3 className="mb-4 text-sm font-semibold text-slate-900">{t('dashboard.topBookmakers')}</h3>
           {bookmakersLoading ? (
             <div className="space-y-3 animate-pulse">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -227,7 +232,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : topBookmakers.length === 0 ? (
-            <p className="text-sm text-slate-400">No bookmakers yet.</p>
+            <p className="text-sm text-slate-400">{t('dashboard.noBookmakers')}</p>
           ) : (
             <div className="space-y-3">
               {topBookmakers.map(({ bookmaker, volumePct }) => (
@@ -247,7 +252,7 @@ export default function DashboardPage() {
             </div>
           )}
           <a href="/bookmakers" className="mt-4 block w-full text-center text-xs font-medium text-slate-400 hover:text-violet-600 transition-colors">
-            Manage Bookies
+            {t('dashboard.manageBookies')}
           </a>
         </div>
       </div>

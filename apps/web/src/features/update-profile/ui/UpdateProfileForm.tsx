@@ -1,19 +1,16 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useSession } from 'next-auth/react'
+import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import { useUpdateProfileMutation } from '../api/update-profile.api'
 import { FormSkeleton } from '@/shared/ui/FormSkeleton'
 
-const schema = z.object({
-  name: z.string().min(2, 'Min 2 characters').max(50, 'Max 50 characters').trim(),
-  email: z.string().email('Invalid email address').toLowerCase(),
-})
-
-type FormData = z.infer<typeof schema>
+type FormData = { name: string; email: string }
 
 function extractErrorMessage(err: unknown, fallback: string): string {
   if (err && typeof err === 'object' && 'data' in err) {
@@ -25,8 +22,22 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 }
 
 export function UpdateProfileForm() {
+  const { t } = useTranslation()
   const { data: session, update, status } = useSession()
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation()
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z
+          .string()
+          .min(2, t('profile.minChars', { min: 2 }))
+          .max(50, t('profile.maxChars', { max: 50 }))
+          .trim(),
+        email: z.string().email(t('profile.invalidEmail')).toLowerCase(),
+      }),
+    [t]
+  )
 
   const {
     register,
@@ -46,9 +57,9 @@ export function UpdateProfileForm() {
       await updateProfile(data).unwrap()
       await update({ user: { name: data.name, email: data.email } })
       reset(data)
-      toast.success('Profile updated')
+      toast.success(t('profile.updated'))
     } catch (err) {
-      toast.error(extractErrorMessage(err, 'Failed to update profile'))
+      toast.error(extractErrorMessage(err, t('profile.updateFailed')))
     }
   }
 
@@ -59,7 +70,7 @@ export function UpdateProfileForm() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
-            Full Name
+            {t('profile.fullName')}
           </label>
           <input
             {...register('name')}
@@ -69,7 +80,7 @@ export function UpdateProfileForm() {
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
-            Email Address
+            {t('profile.emailAddress')}
           </label>
           <input
             {...register('email')}
@@ -85,7 +96,7 @@ export function UpdateProfileForm() {
           disabled={!isDirty || isSaving}
           className="rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSaving ? 'Saving…' : 'Save Changes'}
+          {isSaving ? t('profile.saving') : t('profile.save')}
         </button>
       </div>
     </form>

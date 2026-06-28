@@ -10,10 +10,9 @@ import { NAV_ORDER } from '@/shared/lib/nav'
 
 interface AppShellProps {
   children: React.ReactNode
-  placeholder?: string
 }
 
-export function AppShell({ children, placeholder }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const [isBetModalOpen, setIsBetModalOpen] = useState(false)
   const pathname = usePathname()
   const prevRef = useRef(pathname)
@@ -34,7 +33,7 @@ export function AppShell({ children, placeholder }: AppShellProps) {
     <div className="flex h-screen bg-slate-50">
       <Sidebar onAddBet={() => setIsBetModalOpen(true)} />
       <div className="ml-56 flex flex-1 flex-col overflow-hidden">
-        <Header placeholder={placeholder} />
+        <Header />
         {/* overflow-x-hidden clips residual x during any layout jitter */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-8">
           {/*

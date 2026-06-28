@@ -1,6 +1,7 @@
 'use client'
 
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { FormSkeleton } from '@/shared/ui/FormSkeleton'
 import {
   useGetCurrenciesQuery,
@@ -18,6 +19,7 @@ const selectClass =
 const labelClass = 'mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400'
 
 export function AppPreferencesForm() {
+  const { t } = useTranslation()
   const { data: currencies = [], isLoading: loadingCurrencies } = useGetCurrenciesQuery()
   const { data: timezones = [], isLoading: loadingTimezones } = useGetTimezonesQuery()
   const { data: languages = [], isLoading: loadingLanguages } = useGetLanguagesQuery()
@@ -32,27 +34,27 @@ export function AppPreferencesForm() {
   const handleCurrency = async (id: string) => {
     try {
       await updateCurrency(id).unwrap()
-      toast.success('Currency updated')
+      toast.success(t('preferences.currencyUpdated'))
     } catch {
-      toast.error('Failed to update currency')
+      toast.error(t('preferences.failedCurrency'))
     }
   }
 
   const handleTimezone = async (id: string) => {
     try {
       await updateTimezone(id).unwrap()
-      toast.success('Timezone updated')
+      toast.success(t('preferences.timezoneUpdated'))
     } catch {
-      toast.error('Failed to update timezone')
+      toast.error(t('preferences.failedTimezone'))
     }
   }
 
   const handleLanguage = async (id: string) => {
     try {
       await updateLanguage(id).unwrap()
-      toast.success('Language updated')
+      toast.success(t('preferences.languageUpdated'))
     } catch {
-      toast.error('Failed to update language')
+      toast.error(t('preferences.failedLanguage'))
     }
   }
 
@@ -61,7 +63,7 @@ export function AppPreferencesForm() {
   return (
     <div className="grid grid-cols-3 gap-4">
       <div>
-        <label className={labelClass}>Currency</label>
+        <label className={labelClass}>{t('preferences.currency')}</label>
         <select
           value={prefs?.currencyId ?? ''}
           onChange={(e) => handleCurrency(e.target.value)}
@@ -77,7 +79,7 @@ export function AppPreferencesForm() {
       </div>
 
       <div>
-        <label className={labelClass}>Timezone</label>
+        <label className={labelClass}>{t('preferences.timezone')}</label>
         <select
           value={prefs?.timezoneId ?? ''}
           onChange={(e) => handleTimezone(e.target.value)}
@@ -93,7 +95,7 @@ export function AppPreferencesForm() {
       </div>
 
       <div>
-        <label className={labelClass}>Language</label>
+        <label className={labelClass}>{t('preferences.language')}</label>
         <select
           value={prefs?.languageId ?? ''}
           onChange={(e) => handleLanguage(e.target.value)}

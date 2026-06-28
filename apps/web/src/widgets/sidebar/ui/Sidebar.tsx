@@ -2,16 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { LayoutDashboard, BarChart2, Receipt, BookOpen, Settings, Plus } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
-
-const navItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Analytics', href: '/analytics', icon: BarChart2 },
-  { label: 'Bets', href: '/bets', icon: Receipt },
-  { label: 'Bookmakers', href: '/bookmakers', icon: BookOpen },
-  { label: 'Settings', href: '/settings', icon: Settings },
-]
 
 interface SidebarProps {
   onAddBet?: () => void
@@ -19,6 +12,15 @@ interface SidebarProps {
 
 export function Sidebar({ onAddBet }: SidebarProps) {
   const pathname = usePathname()
+  const { t } = useTranslation()
+
+  const navItems = [
+    { label: t('nav.dashboard'), href: '/dashboard', icon: LayoutDashboard },
+    { label: t('nav.analytics'), href: '/analytics', icon: BarChart2 },
+    { label: t('nav.bets'), href: '/bets', icon: Receipt },
+    { label: t('nav.bookmakers'), href: '/bookmakers', icon: BookOpen },
+    { label: t('nav.settings'), href: '/settings', icon: Settings },
+  ]
 
   return (
     <aside className="fixed left-0 top-0 flex h-screen w-56 flex-col border-r border-slate-100 bg-white">
@@ -63,7 +65,7 @@ export function Sidebar({ onAddBet }: SidebarProps) {
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
         >
           <Plus className="h-4 w-4" />
-          Add Bet
+          {t('nav.addBet')}
         </button>
       </div>
     </aside>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { SessionProvider } from '@/shared/ui/providers/SessionProvider'
 import { ReduxProvider } from '@/shared/ui/providers/ReduxProvider'
+import { I18nProvider } from '@/shared/ui/providers/I18nProvider'
 import { AppToaster } from '@/shared/ui/Toaster'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
@@ -81,7 +82,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <SessionProvider>
-          <ReduxProvider>{children}</ReduxProvider>
+          <ReduxProvider>
+            <I18nProvider>{children}</I18nProvider>
+          </ReduxProvider>
         </SessionProvider>
         <AppToaster />
       </body>
